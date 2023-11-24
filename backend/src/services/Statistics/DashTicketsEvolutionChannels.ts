@@ -8,16 +8,16 @@ interface Request {
 }
 
 const query = `
-  select dt_ref, to_char(dt_ref, 'DD/MM/YYYY') dt_referencia , label, qtd, ROUND(100.0*(qtd/sum(qtd) over ()), 2) pertentual  from (
+select dt_ref, date_format(dt_ref, '%d/%m/%Y') dt_referencia , label, qtd, ROUND(100.0*(qtd/sum(qtd) over ()), 2) pertentual  from (
   select
-  date_trunc('day', t."createdAt") dt_ref,
-  --to_char(date_trunc('day', t."createdAt"), 'DD/MM/YYYY') ,
+  date_format('day', t.createdAt) dt_ref,
+  --date_format(date_format('day', t.createdAt), '%d/%m/%Y') ,
   t.channel as label,
   count(1) as qtd
-  from "Tickets" t
-  where t."tenantId" = :tenantId
-  and date_trunc('day', t."createdAt") between :startDate and :endDate
-  group by date_trunc('day', t."createdAt"), t.channel
+  from Tickets t
+  where t.tenantId = @tenantId
+  and date_format('day', t.createdAt) BETWEEN @startDate AND @endDate
+  group by date_format('day', t.createdAt), t.channel
   ) a
   order by 1
 `;
