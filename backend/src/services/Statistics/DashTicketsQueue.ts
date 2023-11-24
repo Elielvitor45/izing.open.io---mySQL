@@ -8,15 +8,15 @@ interface Request {
 }
 
 const query = `
-  select label, qtd,  ROUND(100.0*(qtd/sum(qtd) over ()), 2) pertentual from (
+select label, qtd,  ROUND(100.0*(qtd/sum(qtd) over ()), 2) pertentual from (
   select
   coalesce(q.queue, 'Não informado') as label,
   count(1) as qtd
-  from "Tickets" t
-  left join "Queues" q on (t."queueId" = q.id)
-  where t."tenantId" = :tenantId
-  and date_trunc('day', t."createdAt") between :startDate and :endDate
-  group by t."queueId", q.queue
+  from Tickets t
+  left join Queues q on (t.queueId = q.id)
+  where t.tenantId = @tenantId
+  and date_format('day', t.createdAt) BETWEEN @startDate AND @endDate
+  group by t.queueId, q.queue
   ) a
   order by 2 Desc
 `;
