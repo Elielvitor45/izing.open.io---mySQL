@@ -8,21 +8,21 @@ interface Request {
 }
 
 const query = `
-  select
-  dt_ref,
-  to_char(dt_ref, 'DD/MM/YYYY') as label,
-  qtd
-  --ROUND(100.0*(qtd/sum(qtd) over ()), 2) pertentual
-  from (
-  select
-  date_trunc('day', t."createdAt") dt_ref,
-  count(1) as qtd
-  from "Tickets" t
-  where t."tenantId" = :tenantId
-  and date_trunc('day', t."createdAt") between :startDate and :endDate
-  group by date_trunc('day', t."createdAt")
-  ) a
-  order by 1
+select
+dt_ref,
+date_format(dt_ref, '%d/%m/%Y') as label,
+qtd
+--ROUND(100.0*(qtd/sum(qtd) over ()), 2) pertentual
+from (
+select
+date_format('day', t.createdAt) dt_ref,
+count(1) as qtd
+from Tickets t
+where t.tenantId = @tenantId
+and date_format('day', t.createdAt) between @startDate and @endDate
+group by date_format('day', t.createdAt)
+) a
+order by 1
 `;
 
 const DashTicketsEvolutionByPeriod = async ({
