@@ -12,9 +12,9 @@ const query = `
   select
   t.channel as label,
   count(1) as qtd
-  from "Tickets" t
-  where t."tenantId" = :tenantId
-  and date_trunc('day', t."createdAt") between :startDate and :endDate
+  from Tickets t
+  where t.tenantId = @tenantId
+  and date_format('day', t.createdAt) between @startDate and @endDate
   group by t.channel
   ) a
   order by 2 Desc
