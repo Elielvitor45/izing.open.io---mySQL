@@ -10,7 +10,9 @@ module.exports = {
   //   max: 100,
   //   min: 5
   // },
+  useUTC: true,
   dialect: process.env.DB_DIALECT || "postgres",
+  timezone: "-03:00",
   host: process.env.POSTGRES_HOST || "localhost",
   port: process.env.DB_PORT || "5432",
   database: process.env.POSTGRES_DB || "wchats",
