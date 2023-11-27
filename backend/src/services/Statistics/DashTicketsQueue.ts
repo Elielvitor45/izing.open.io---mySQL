@@ -8,17 +8,31 @@ interface Request {
 }
 
 const query = `
-select label, qtd,  ROUND(100.0*(qtd/sum(qtd) over ()), 2) pertentual from (
-  select
-  coalesce(q.queue, 'Não informado') as label,
-  count(1) as qtd
-  from Tickets t
-  left join Queues q on (t.queueId = q.id)
-  where t.tenantId = @tenantId
-  and date_format('day', t.createdAt) BETWEEN @startDate AND @endDate
-  group by t.queueId, q.queue
-  ) a
-  order by 2 Desc
+SELECT
+    a.label,
+    a.qtd,
+    ROUND(100.0 * (a.qtd / total.total_qtd), 2) AS percentual
+FROM (
+    SELECT
+        COALESCE(q.queue, 'Não informado') AS label,
+        COUNT(1) AS qtd
+    FROM Tickets t
+    LEFT JOIN Queues q ON (t.queueId = q.id)
+    WHERE t.tenantId = @tenantId
+        AND DATE_FORMAT(t.createdAt, '%Y-%m-%d') BETWEEN @startDate AND @endDate
+    GROUP BY t.queueId, q.queue
+) a
+JOIN (
+    SELECT
+        COALESCE(q.queue, 'Não informado') AS total_label,
+        COUNT(1) AS total_qtd
+    FROM Tickets t
+    LEFT JOIN Queues q ON (t.queueId = q.id)
+    WHERE t.tenantId = @tenantId
+        AND DATE_FORMAT(t.createdAt, '%Y-%m-%d') BETWEEN @startDate AND @endDate
+    GROUP BY t.queueId, q.queue
+) total ON a.label = total.total_label
+ORDER BY 2 DESC;
 `;
 
 const DashTicketsQueue = async ({

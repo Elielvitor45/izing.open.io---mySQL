@@ -8,16 +8,27 @@ interface Request {
 }
 
 const query = `
-  select label, qtd, ROUND(100.0*(qtd/sum(qtd) over ()), 2) pertentual  from (
-  select
-  t.channel as label,
-  count(1) as qtd
-  from Tickets t
-  where t.tenantId = @tenantId
-  and date_format('day', t.createdAt) between @startDate and @endDate
-  group by t.channel
-  ) a
-  order by 2 Desc
+SELECT
+    a.label,
+    a.qtd,
+    ROUND(100.0 * (a.qtd / total.total_qtd), 2) AS percentage
+FROM (
+    SELECT
+        t.channel AS label,
+        COUNT(1) AS qtd
+    FROM Tickets t
+    WHERE t.tenantId = @tenantId
+        AND DATE_FORMAT(t.createdAt, '%Y-%m-%d') BETWEEN @startDate AND @endDate
+    GROUP BY t.channel
+) a
+JOIN (
+    SELECT
+        COUNT(1) AS total_qtd
+    FROM Tickets t
+    WHERE t.tenantId = @tenantId
+        AND DATE_FORMAT(t.createdAt, '%Y-%m-%d') BETWEEN @startDate AND @endDate
+) total
+ORDER BY 2 DESC;
 `;
 
 const DashTicketsChannels = async ({

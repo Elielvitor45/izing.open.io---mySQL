@@ -8,18 +8,32 @@ interface Request {
 }
 
 const query = `
-select dt_ref, date_format(dt_ref, '%d/%m/%Y') dt_referencia , label, qtd, ROUND(100.0*(qtd/sum(qtd) over ()), 2) pertentual  from (
-  select
-  date_format('day', t.createdAt) dt_ref,
-  --date_format(date_format('day', t.createdAt), '%d/%m/%Y') ,
-  t.channel as label,
-  count(1) as qtd
-  from Tickets t
-  where t.tenantId = @tenantId
-  and date_format('day', t.createdAt) BETWEEN @startDate AND @endDate
-  group by date_format('day', t.createdAt), t.channel
-  ) a
-  order by 1
+SELECT
+    a.dt_ref,
+    DATE_FORMAT(a.dt_ref, '%d/%m/%Y') AS dt_referencia,
+    a.label,
+    a.qtd,
+    ROUND(100.0 * (a.qtd / total.total_qtd), 2) AS percentual
+FROM (
+    SELECT
+        DATE_FORMAT(t.createdAt, '%Y-%m-%d') AS dt_ref,
+        t.channel AS label,
+        COUNT(1) AS qtd
+    FROM Tickets t
+    WHERE t.tenantId = @tenantId
+        AND DATE_FORMAT(t.createdAt, '%Y-%m-%d') BETWEEN @startDate AND @endDate
+    GROUP BY DATE_FORMAT(t.createdAt, '%Y-%m-%d'), t.channel
+) a
+JOIN (
+    SELECT
+        DATE_FORMAT(t.createdAt, '%Y-%m-%d') AS dt_ref,
+        COUNT(1) AS total_qtd
+    FROM Tickets t
+    WHERE t.tenantId = @tenantId
+        AND DATE_FORMAT(t.createdAt, '%Y-%m-%d') BETWEEN @startDate AND @endDate
+    GROUP BY DATE_FORMAT(t.createdAt, '%Y-%m-%d')
+) total ON a.dt_ref = total.dt_ref
+ORDER BY 1;
 `;
 
 const DashTicketsEvolutionChannels = async ({

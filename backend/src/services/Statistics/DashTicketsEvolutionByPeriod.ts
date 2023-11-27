@@ -8,21 +8,27 @@ interface Request {
 }
 
 const query = `
-select
-dt_ref,
-date_format(dt_ref, '%d/%m/%Y') as label,
-qtd
---ROUND(100.0*(qtd/sum(qtd) over ()), 2) pertentual
-from (
-select
-date_format('day', t.createdAt) dt_ref,
-count(1) as qtd
-from Tickets t
-where t.tenantId = @tenantId
-and date_format('day', t.createdAt) between @startDate and @endDate
-group by date_format('day', t.createdAt)
+SELECT
+    dt_ref,
+    date_format(dt_ref, '%d/%m/%Y') as label,
+    qtd,
+    ROUND(100.0 * (qtd / total_qtd), 2) AS percentual
+FROM (
+    SELECT
+        date_format(t.createdAt, '%d/%m/%Y') AS dt_ref,
+        count(1) AS qtd,
+        (
+            SELECT count(1)
+            FROM Tickets
+            WHERE tenantId = @tenantId
+            AND date_format(t.createdAt, '%d/%m/%Y') BETWEEN @startDate AND @endDate
+        ) AS total_qtd
+    FROM Tickets t
+    WHERE t.tenantId = @tenantId
+    AND date_format(t.createdAt, '%d/%m/%Y') BETWEEN @startDate AND @endDate
+    GROUP BY date_format(t.createdAt, '%d/%m/%Y')
 ) a
-order by 1
+ORDER BY dt_ref;
 `;
 
 const DashTicketsEvolutionByPeriod = async ({
