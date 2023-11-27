@@ -10,7 +10,6 @@ interface Request {
 const ListCampaignService = async ({
   tenantId
 }: Request): Promise<Campaign[]> => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const where: any = {
     tenantId
   };
@@ -20,32 +19,32 @@ const ListCampaignService = async ({
     attributes: {
       include: [
         [
-          Sequelize.fn("COUNT", Sequelize.col("campaignContacts.id")),
-          "contactsCount"
+          Sequelize.fn('COUNT', Sequelize.col('campaignContacts.id')),
+          'contactsCount'
         ],
         [
           Sequelize.literal(
-            '(select count(1) from "CampaignContacts" as "w" where "w"."campaignId" = "Campaign"."id" and "w"."ack" = 0 )'
+            '(select count(1) from CampaignContacts as w where w.campaignId = Campaign.id and w.ack = 0 )'
           ),
-          "pendentesEnvio"
+          'pendentesEnvio'
         ],
         [
           Sequelize.literal(
-            '(select count(1) from "CampaignContacts" as "w" where "w"."campaignId" = "Campaign"."id" and "w"."ack" = 1 )'
+            '(select count(1) from CampaignContacts as w where w.campaignId = Campaign.id and w.ack = 1 )'
           ),
-          "pendentesEntrega"
+          'pendentesEntrega'
         ],
         [
           Sequelize.literal(
-            '(select count(1) from "CampaignContacts" as "w" where "w"."campaignId" = "Campaign"."id" and "w"."ack" = 2 )'
+            '(select count(1) from CampaignContacts as w where w.campaignId = Campaign.id and w.ack = 2 )'
           ),
-          "recebidas"
+          'recebidas'
         ],
         [
           Sequelize.literal(
-            '(select count(1) from "CampaignContacts" as "w" where "w"."campaignId" = "Campaign"."id" and "w"."ack" = 3 )'
+            '(select count(1) from CampaignContacts as w where w.campaignId = Campaign.id and w.ack = 3 )'
           ),
-          "lidas"
+          'lidas'
         ]
       ]
     },
@@ -55,8 +54,8 @@ const ListCampaignService = async ({
         attributes: []
       }
     ],
-    group: ["Campaign.id"],
-    order: [["start", "ASC"]]
+    group: ['Campaign.id'],
+    order: [['start', 'ASC']]
   });
 
   return campaignData;
