@@ -44,7 +44,7 @@ const SetTicketMessagesAsRead = async (ticket: Ticket): Promise<void> => {
 
   socketEmit({
     tenantId: ticket.tenantId,
-    type: "ticket:update",
+    type: "ticket@update",
     payload: ticketReload
   });
 };

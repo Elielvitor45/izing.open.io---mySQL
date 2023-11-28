@@ -90,5 +90,4 @@ sequelize.afterDisconnect(() => {
   // eslint-disable-next-line no-underscore-dangle
   // clearInterval(global._loopDb);
 });
-
 export default sequelize;

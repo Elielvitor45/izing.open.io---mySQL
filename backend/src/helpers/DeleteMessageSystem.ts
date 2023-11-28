@@ -71,7 +71,7 @@ const DeleteMessageSystem = async (
 
   socketEmit({
     tenantId: ticket.tenantId,
-    type: "chat:delete",
+    type: "chat@delete",
     payload: message
   });
 };

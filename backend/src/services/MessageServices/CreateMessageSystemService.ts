@@ -209,7 +209,7 @@ const CreateMessageSystemService = async ({
 
           socketEmit({
             tenantId,
-            type: "chat:create",
+            type: "chat@create",
             payload: messageCreated
           });
         })
@@ -260,7 +260,7 @@ const CreateMessageSystemService = async ({
 
       socketEmit({
         tenantId,
-        type: "chat:create",
+        type: "chat@create",
         payload: messageCreated
       });
     }

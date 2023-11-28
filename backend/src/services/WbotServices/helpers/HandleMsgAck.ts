@@ -33,7 +33,7 @@ const HandleMsgAck = async (msg: WbotMessage, ack: MessageAck) => {
       const { ticket } = messageToUpdate;
       socketEmit({
         tenantId: ticket.tenantId,
-        type: "chat:ack",
+        type: "chat@ack",
         payload: messageToUpdate
       });
 

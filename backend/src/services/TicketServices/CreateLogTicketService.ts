@@ -38,11 +38,6 @@ const CreateLogTicketService = async ({
     queueId
   });
 
-  // socketEmit({
-  //   tenantId,
-  //   type: "ticket:update",
-  //   payload: ticket
-  // });
 };
 
 export default CreateLogTicketService;

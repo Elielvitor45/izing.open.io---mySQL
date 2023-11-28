@@ -31,7 +31,7 @@ const DeleteWhatsAppMessage = async (
     if (message) {
       socketEmit({
         tenantId,
-        type: "chat:delete",
+        type: "chat@delete",
         payload: message
       });
     }
@@ -68,7 +68,7 @@ const DeleteWhatsAppMessage = async (
 
   socketEmit({
     tenantId: ticket.tenantId,
-    type: "chat:delete",
+    type: "chat@delete",
     payload: message
   });
 };

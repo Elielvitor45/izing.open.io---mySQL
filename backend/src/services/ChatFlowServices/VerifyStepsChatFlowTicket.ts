@@ -166,7 +166,7 @@ const isRetriesLimit = async (
 
     socketEmit({
       tenantId: ticket.tenantId,
-      type: "ticket:update",
+      type: "ticket@update",
       payload: ticket
     });
 
@@ -217,7 +217,7 @@ const isAnswerCloseTicket = async (
 
     socketEmit({
       tenantId: ticket.tenantId,
-      type: "ticket:update",
+      type: "ticket@update",
       payload: ticket
     });
 
@@ -291,7 +291,7 @@ const VerifyStepsChatFlowTicket = async (
 
         socketEmit({
           tenantId: ticket.tenantId,
-          type: "ticket:update",
+          type: "ticket@update",
           payload: ticket
         });
 

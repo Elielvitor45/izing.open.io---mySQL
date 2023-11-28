@@ -23,7 +23,6 @@ const UpdateUserConfigsService = async ({
     where: { id: userId, tenantId },
     attributes: ["name", "id", "email", "profile", "configs"]
   });
-
   if (!user) {
     throw new AppError("ERR_NO_USER_FOUND", 404);
   }

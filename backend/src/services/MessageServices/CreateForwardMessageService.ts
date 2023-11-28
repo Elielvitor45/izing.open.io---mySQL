@@ -101,7 +101,7 @@ const CreateForwardMessageService = async ({
 
   socketEmit({
     tenantId,
-    type: "chat:create",
+    type: "chat@create",
     payload: messageCreated
   });
 };

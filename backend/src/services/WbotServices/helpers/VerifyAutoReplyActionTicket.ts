@@ -114,7 +114,7 @@ const verifyAutoReplyActionTicket = async (
 
         socketEmit({
           tenantId: ticket.tenantId,
-          type: "ticket:update",
+          type: "ticket@update",
           payload: ticket
         });
 
