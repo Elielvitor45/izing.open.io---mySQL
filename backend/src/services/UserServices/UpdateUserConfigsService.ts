@@ -26,10 +26,9 @@ const UpdateUserConfigsService = async ({
   if (!user) {
     throw new AppError("ERR_NO_USER_FOUND", 404);
   }
-
   await user.update({
     configs: {
-      ...user.configs,
+      // ...user.configs,
       ...userConfigs
     }
   });
