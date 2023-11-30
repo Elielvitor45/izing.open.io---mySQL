@@ -7,6 +7,7 @@ import { logger } from "../utils/logger";
 import SyncUnreadMessagesWbot from "../services/WbotServices/SyncUnreadMessagesWbot";
 import Queue from "./Queue";
 import AppError from "../errors/AppError";
+import { rmSync } from "fs";
 
 interface Session extends Client {
   id: number;
@@ -59,8 +60,10 @@ const minimal_args = [
 export const apagarPastaSessao = async (id: number | string): Promise<void> => {
   const pathRoot = path.resolve(__dirname, "..", "..", ".wwebjs_auth");
   const pathSession = `${pathRoot}/session-wbot-${id}`;
-  try {
-    await rm(pathSession, { recursive: true, force: true });
+  try {  
+    console.log(pathSession);
+    await rmSync(pathSession,  { recursive: true, force: true })
+    //await rm(pathSession, { recursive: true, force: true });
   } catch (error) {
     logger.info(`apagarPastaSessao:: ${pathSession}`);
     logger.error(error);
