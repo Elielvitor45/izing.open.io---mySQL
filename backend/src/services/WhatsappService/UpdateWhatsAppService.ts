@@ -1,8 +1,9 @@
 import * as Yup from "yup";
 import { Op } from "sequelize";
-
+import { QueryTypes } from "sequelize";
 import AppError from "../../errors/AppError";
 import Whatsapp from "../../models/Whatsapp";
+import sequelize from "../../database";
 
 interface WhatsappData {
   name?: string;
@@ -21,6 +22,7 @@ interface WhatsappData {
   farewellMessage?: string;
 }
 
+
 interface Request {
   whatsappData: WhatsappData;
   whatsappId: string;
@@ -32,16 +34,23 @@ interface Response {
   oldDefaultWhatsapp: Whatsapp | null;
 }
 
+const query = `UPDATE Whatsapps w SET w.qrcode = '' WHERE w.Id = 1;`;
+var UpdateQrCode: () => void;
+UpdateQrCode = async function(): Promise<void>{
+  const data = await sequelize.query(query, {
+    type: QueryTypes.UPDATE
+  });
+};
 const UpdateWhatsAppService = async ({
   whatsappData,
   whatsappId,
   tenantId
 }: Request): Promise<Response> => {
+  await UpdateQrCode;
   const schema = Yup.object().shape({
     name: Yup.string().min(2),
     isDefault: Yup.boolean()
   });
-
   const {
     name,
     status,
@@ -58,12 +67,9 @@ const UpdateWhatsAppService = async ({
     greetingMessage,
     farewellMessage
   } = whatsappData;
-
   try {
     await schema.validate({ name, status, isDefault });
-
     let oldDefaultWhatsapp: Whatsapp | null = null;
-
     if (isDefault) {
       oldDefaultWhatsapp = await Whatsapp.findOne({
         where: { isDefault: true, tenantId, id: { [Op.not]: whatsappId } }
@@ -72,15 +78,12 @@ const UpdateWhatsAppService = async ({
         await oldDefaultWhatsapp.update({ isDefault: false });
       }
     }
-
     const whatsapp = await Whatsapp.findOne({
       where: { id: whatsappId, tenantId }
     });
-
     if (!whatsapp) {
       throw new AppError("ERR_NO_WAPP_FOUND", 404);
     }
-
     const data: WhatsappData = {
       name,
       status,
@@ -96,17 +99,13 @@ const UpdateWhatsAppService = async ({
       greetingMessage,
       farewellMessage
     };
-
     if (instagramKey) {
       data.instagramKey = instagramKey;
     }
-
     await whatsapp.update(data);
-
     return { whatsapp, oldDefaultWhatsapp };
   } catch (err: any) {
     throw new AppError(err.message);
   }
 };
-
 export default UpdateWhatsAppService;
