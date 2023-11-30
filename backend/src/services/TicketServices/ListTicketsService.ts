@@ -105,18 +105,18 @@ const ListTicketsService = async ({
   left join Contacts c on t.contactId = c.id
   left join Users u on u.id = t.userId
   left join Queues q on t.queueId = q.id
-  where t.tenantId = @tenantId
-  and c.tenantId = @tenantId
-  and t.status IN ( @status )
-  AND ((@isShowAll = 'N' and  (
-    (@isExistsQueueTenant = 'S' and t.queueId IN ( @queuesIdsUser ))
-    or t.userId = @userId or exists (select 1 from ContactWallets cw where cw.walletId = @userId and cw.contactId = t.contactId) )
-  ) OR (@isShowAll = 'S') OR (t.isGroup = true) OR (@isExistsQueueTenant = 'N') )
-  AND (( @isUnread = 'S'  and t.unreadMessages > 0) OR (@isUnread = 'N'))
-  AND ((@isNotAssigned = 'S' and t.userId is null) OR (@isNotAssigned = 'N'))
-  AND ((@isSearchParam = 'S' 
-  AND ((CONVERT(t.id,CHAR) LIKE @searchParam) 
-  OR (exists (select 1 from Contacts c where c.id = t.contactId and (upper(c.name) like UPPER(@searchParam) or c.number LIKE @searchParam)))) OR (@isSearchParam = 'N'))
+  where t.tenantId = :tenantId
+  and c.tenantId = :tenantId
+  and t.status IN ( :status )
+  AND ((:isShowAll = 'N' and  (
+    (:isExistsQueueTenant = 'S' and t.queueId IN ( :queuesIdsUser ))
+    or t.userId = :userId or exists (select 1 from ContactWallets cw where cw.walletId = :userId and cw.contactId = t.contactId) )
+  ) OR (:isShowAll = 'S') OR (t.isGroup = true) OR (:isExistsQueueTenant = 'N') )
+  AND (( :isUnread = 'S'  and t.unreadMessages > 0) OR (:isUnread = 'N'))
+  AND ((:isNotAssigned = 'S' and t.userId is null) OR (:isNotAssigned = 'N'))
+  AND ((:isSearchParam = 'S' 
+  AND ((CONVERT(t.id,CHAR) LIKE :searchParam) 
+  OR (exists (select 1 from Contacts c where c.id = t.contactId and (upper(c.name) like UPPER(:searchParam) or c.number LIKE :searchParam)))) OR (:isSearchParam = 'N'))
   )
   order by t.updatedAt desc
   LIMIT ${limit}

@@ -20,12 +20,12 @@ FROM (
         (
             SELECT count(1)
             FROM Tickets
-            WHERE tenantId = @tenantId
-            AND date_format(t.createdAt, '%d/%m/%Y') BETWEEN @startDate AND @endDate
+            WHERE tenantId = :tenantId
+            AND date_format(t.createdAt, '%d/%m/%Y') BETWEEN :startDate AND :endDate
         ) AS total_qtd
     FROM Tickets t
-    WHERE t.tenantId = @tenantId
-    AND date_format(t.createdAt, '%d/%m/%Y') BETWEEN @startDate AND @endDate
+    WHERE t.tenantId = :tenantId
+    AND date_format(t.createdAt, '%d/%m/%Y') BETWEEN :startDate AND :endDate
     GROUP BY date_format(t.createdAt, '%d/%m/%Y'), t.createdAt
 ) a
 ORDER BY dt_ref;

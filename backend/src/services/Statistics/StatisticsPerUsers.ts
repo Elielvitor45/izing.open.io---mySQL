@@ -39,8 +39,8 @@ AVG(TIMESTAMPDIFF(MINUTE, FROM_UNIXTIME(t.startedAttendanceAt/1000), FROM_UNIXTI
 FROM Tickets t
 LEFT JOIN Users u ON t.userId = u.id
 LEFT JOIN Queues q ON q.id = t.queueId
-WHERE t.tenantId = @tenantId
-AND DATE(t.createdAt) BETWEEN @startDate AND @endDate
+WHERE t.tenantId = :tenantId
+AND DATE(t.createdAt) BETWEEN :startDate AND :endDate
 ORDER BY 6 DESC`;
 
 const StatisticsPerUser = async ({

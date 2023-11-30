@@ -37,8 +37,8 @@ SEC_TO_TIME(AVG(TIMESTAMPDIFF(SECOND, t.createdAt, FROM_UNIXTIME(t.startedAttend
 FROM Tickets t
 LEFT JOIN Users u ON t.userId = u.id
 LEFT JOIN Queues q ON q.id = t.queueId
-WHERE t.tenantId = @tenantId
-AND DATE(t.createdAt) BETWEEN @startDate AND @endDate
+WHERE t.tenantId = :tenantId
+AND DATE(t.createdAt) BETWEEN :startDate AND :endDate
 GROUP BY 
 t.email,
 t.userId ,

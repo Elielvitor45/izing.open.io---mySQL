@@ -20,8 +20,8 @@ FROM (
         t.channel AS label,
         COUNT(1) AS qtd
     FROM Tickets t
-    WHERE t.tenantId = @tenantId
-        AND DATE_FORMAT(t.createdAt, '%Y-%m-%d') BETWEEN @startDate AND @endDate
+    WHERE t.tenantId = :tenantId
+        AND DATE_FORMAT(t.createdAt, '%Y-%m-%d') BETWEEN :startDate AND :endDate
     GROUP BY DATE_FORMAT(t.createdAt, '%Y-%m-%d'), t.channel
 ) a
 JOIN (
@@ -29,8 +29,8 @@ JOIN (
         DATE_FORMAT(t.createdAt, '%Y-%m-%d') AS dt_ref,
         COUNT(1) AS total_qtd
     FROM Tickets t
-    WHERE t.tenantId = @tenantId
-        AND DATE_FORMAT(t.createdAt, '%Y-%m-%d') BETWEEN @startDate AND @endDate
+    WHERE t.tenantId = :tenantId
+        AND DATE_FORMAT(t.createdAt, '%Y-%m-%d') BETWEEN :startDate AND :endDate
     GROUP BY DATE_FORMAT(t.createdAt, '%Y-%m-%d')
 ) total ON a.dt_ref = total.dt_ref
 ORDER BY 1;

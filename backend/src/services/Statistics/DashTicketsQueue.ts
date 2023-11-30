@@ -18,8 +18,8 @@ FROM (
         COUNT(1) AS qtd
     FROM Tickets t
     LEFT JOIN Queues q ON (t.queueId = q.id)
-    WHERE t.tenantId = @tenantId
-        AND DATE_FORMAT(t.createdAt, '%Y-%m-%d') BETWEEN @startDate AND @endDate
+    WHERE t.tenantId = :tenantId
+        AND DATE_FORMAT(t.createdAt, '%Y-%m-%d') BETWEEN :startDate AND :endDate
     GROUP BY t.queueId, q.queue
 ) a
 JOIN (
@@ -28,8 +28,8 @@ JOIN (
         COUNT(1) AS total_qtd
     FROM Tickets t
     LEFT JOIN Queues q ON (t.queueId = q.id)
-    WHERE t.tenantId = @tenantId
-        AND DATE_FORMAT(t.createdAt, '%Y-%m-%d') BETWEEN @startDate AND @endDate
+    WHERE t.tenantId = :tenantId
+        AND DATE_FORMAT(t.createdAt, '%Y-%m-%d') BETWEEN :startDate AND :endDate
     GROUP BY t.queueId, q.queue
 ) total ON a.label = total.total_label
 ORDER BY 2 DESC;

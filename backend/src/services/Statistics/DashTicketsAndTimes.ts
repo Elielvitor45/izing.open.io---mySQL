@@ -1,9 +1,9 @@
 import { QueryTypes } from "sequelize";
 import sequelize from "../../database";
 
+
 interface Request {
   startDate: string;
-  
   endDate: string;
   tenantId: string | number;
 }
@@ -17,8 +17,8 @@ SEC_TO_TIME(AVG(tma)*60*60) AS TMA,
 SEC_TO_TIME(AVG(tme)*60*60) AS TME, 
 (SELECT COUNT(1)
  FROM Contacts c 
- WHERE c.tenantId = tenantId
- AND DATE(c.createdAt) BETWEEN @startDate AND @endDate
+ WHERE c.tenantId = :tenantId
+ AND DATE(c.createdAt) BETWEEN :startDate AND :endDate
 ) AS new_contacts
 FROM (
 SELECT
@@ -28,8 +28,8 @@ SELECT
   TIMESTAMPDIFF(MINUTE, t.createdAt, FROM_UNIXTIME(t.closedAt/1000)) AS tma,
   TIMESTAMPDIFF(MINUTE, t.createdAt, FROM_UNIXTIME(t.startedAttendanceAt/1000)) AS tme
 FROM Tickets t
-WHERE t.tenantId = tenantId
-AND DATE(t.createdAt) BETWEEN @startDate AND @endDate
+WHERE t.tenantId = :tenantId
+AND DATE(t.createdAt) BETWEEN :startDate AND :endDate
 ) a
 ORDER BY 1 DESC
 `;
@@ -47,6 +47,7 @@ const DashTicketsAndTimes = async ({
     },
     type: QueryTypes.SELECT
   });
+  
   return data;
 };
 
