@@ -22,7 +22,6 @@ interface WhatsappData {
   farewellMessage?: string;
 }
 
-
 interface Request {
   whatsappData: WhatsappData;
   whatsappId: string;
@@ -35,18 +34,20 @@ interface Response {
 }
 
 const query = `UPDATE Whatsapps w SET w.qrcode = '' WHERE w.Id = 1;`;
-var UpdateQrCode: () => void;
-UpdateQrCode = async function(): Promise<void>{
-  const data = await sequelize.query(query, {
-    type: QueryTypes.UPDATE
-  });
-};
+// var UpdateQrCode: () => void;
+// UpdateQrCode = async function(): Promise<void>{
+//   const data = await sequelize.query(query, {
+//     type: QueryTypes.UPDATE
+//   });
+// };
 const UpdateWhatsAppService = async ({
   whatsappData,
   whatsappId,
   tenantId
 }: Request): Promise<Response> => {
-  await UpdateQrCode;
+  await sequelize.query(query, {
+    type: QueryTypes.UPDATE
+  });
   const schema = Yup.object().shape({
     name: Yup.string().min(2),
     isDefault: Yup.boolean()
