@@ -18,29 +18,29 @@ const DefinedUserBotService = async (
   if (method === "N") return;
 
   let query = `
-    select u.id from "Users" u
-    left join "UsersQueues" uq on (u.id = uq."userId")
-    where u."isOnline" = true
-    and u."profile" = 'user'
-    and u."tenantId" = :tenantId
-    and uq."queueId" = :queueId
-    order by random() limit 1
+  select u.id from Users u
+  left join UsersQueues uq on (u.id = uq.userId)
+  where u.isOnline = true
+  and u.profile = 'user'
+  and u.tenantId = :tenantId
+  and uq.queueId = :queueId
+  order by random() limit 1
   `;
 
   if (method === "B") {
     query = `
-      select id from (
-        select u.id, u."name", coalesce(count(t.id), 0) qtd_atendimentos  from "Users" u
-        left join "UsersQueues" uq on (u.id = uq."userId")
-        left join "Tickets" t on (t."userId" = u.id)
-        where u."isOnline" = true
-        and t.status not in ('closed', 'close')
-        and u."profile" = 'user'
-        and u."tenantId" = :tenantId
-        and uq."queueId" = :queueId
-        group by u.id, u."name"
-        order by 3 limit 1
-      ) a
+    select id from (
+      select u.id, u.name, coalesce(count(t.id), 0) qtd_atendimentos  from Users u
+      left JOIN UsersQueues uq on (u.id = uq.userId)
+      left join Tickets t on (t.userId = u.id)
+      where u.isOnline = true
+      and t.status not in ('closed', 'close')
+      and u.profile = 'user'
+      and u.tenantId = :tenantId
+      and uq.queueId = :queueId
+      group by u.id, u.name
+      order by 3 limit 1
+    ) a
     `;
   }
 
