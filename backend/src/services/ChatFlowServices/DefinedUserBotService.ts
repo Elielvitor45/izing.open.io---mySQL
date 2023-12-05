@@ -14,36 +14,29 @@ const DefinedUserBotService = async (
   // method: R = Random | B = Balanced ;
   // R: pega usuario de forma randomica;
   // B: pega o usuario com menor número de atendimentos;
-
-  if (method === "N") return;
-
+  if (method === "R") return;
   let query = `
-  select u.id from Users u
-  left join UsersQueues uq on (u.id = uq.userId)
-  where u.isOnline = true
-  and u.profile = 'user'
-  and u.tenantId = :tenantId
-  and uq.queueId = :queueId
-  order by random() limit 1
+    SELECT u.id
+    FROM Users u
+    LEFT JOIN UsersQueues uq ON (u.id = uq.userId)
+    WHERE u.isOnline = TRUE AND u.profile = 'user' AND u.tenantId = :tenantId AND uq.queueId = :queueId
+    ORDER BY RAND()
+    LIMIT 1
   `;
-
   if (method === "B") {
     query = `
-    select id from (
-      select u.id, u.name, coalesce(count(t.id), 0) qtd_atendimentos  from Users u
-      left JOIN UsersQueues uq on (u.id = uq.userId)
-      left join Tickets t on (t.userId = u.id)
-      where u.isOnline = true
-      and t.status not in ('closed', 'close')
-      and u.profile = 'user'
-      and u.tenantId = :tenantId
-      and uq.queueId = :queueId
-      group by u.id, u.name
-      order by 3 limit 1
-    ) a
+      SELECT id
+      FROM (
+      SELECT u.id, u.name, COALESCE(COUNT(t.id), 0) qtd_atendimentos
+      FROM Users u
+      LEFT JOIN UsersQueues uq ON (u.id = uq.userId)
+      LEFT JOIN Tickets t ON (t.userId = u.id)
+      WHERE u.isOnline = TRUE AND t.status NOT in ('closed', 'close') AND u.profile = 'user' AND u.tenantId = :tenantId AND uq.queueId = :queueId
+      GROUP BY u.id, u.name
+      ORDER BY qtd_atendimentos ASC
+      LIMIT 1 ) a
     `;
   }
-
   const user: any = await User.sequelize?.query(query, {
     replacements: {
       tenantId,
@@ -51,13 +44,13 @@ const DefinedUserBotService = async (
     },
     type: QueryTypes.SELECT
   });
-
+  console.log(user);
   if (user.length) {
     const userId = user[0].id;
     await ticket.update({
       userId
     });
-
+    console.log(queueId)
     await CreateLogTicketService({
       ticketId: ticket.id,
       type: "userDefine",
