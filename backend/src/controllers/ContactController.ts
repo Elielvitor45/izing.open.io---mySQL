@@ -84,13 +84,12 @@ export const show = async (req: Request, res: Response): Promise<Response> => {
   return res.status(200).json(contact);
 };
 
-export const update = async (
+export const  update = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
   const contactData: ContactData = req.body;
   const { tenantId } = req.user;
-
   const schema = Yup.object().shape({
     name: Yup.string(),
     number: Yup.string().matches(
@@ -98,26 +97,25 @@ export const update = async (
       "Invalid number format. Only numbers is allowed."
     )
   });
-
   try {
     await schema.validate(contactData);
   } catch (err) {
-    throw new AppError(err.message);
+    return res.status(400).json({error: err.message});
   }
-
-  const waNumber = await CheckIsValidContact(contactData.number, tenantId);
-
-  contactData.number = waNumber.user;
-
+  //Entender como funciona esse CheckValidContact e descobrir o motivo que está fazendo não funcionar o update
+  //const waNumber = await CheckIsValidContact(contactData.number, tenantId);
+  // contactData.number = waNumber.user;
+  if(contactData.number.length > 13 || contactData.number.length < 12){//Validação temporaria para não permitir numeros incorretos
+    return res.status(400).json({ error: 'Numero Invalido' });
+  }else{
   const { contactId } = req.params;
-
   const contact = await UpdateContactService({
     contactData,
     contactId,
     tenantId
   });
-
   return res.status(200).json(contact);
+}
 };
 
 export const remove = async (
@@ -128,7 +126,6 @@ export const remove = async (
   const { tenantId } = req.user;
 
   await DeleteContactService({ id: contactId, tenantId });
-
   return res.status(200).json({ message: "Contact deleted" });
 };
 
