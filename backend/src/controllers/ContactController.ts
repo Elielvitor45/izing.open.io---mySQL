@@ -100,14 +100,10 @@ export const  update = async (
   try {
     await schema.validate(contactData);
   } catch (err) {
-    return res.status(400).json({error: err.message});
+    throw new AppError(err.message);
   }
-  //Entender como funciona esse CheckValidContact e descobrir o motivo que está fazendo não funcionar o update
-  //const waNumber = await CheckIsValidContact(contactData.number, tenantId);
-  // contactData.number = waNumber.user;
-  if(contactData.number.length > 13 || contactData.number.length < 12){//Validação temporaria para não permitir numeros incorretos
-    return res.status(400).json({ error: 'Numero Invalido' });
-  }else{
+  const waNumber = await CheckIsValidContact(contactData.number, tenantId);
+  contactData.number = waNumber.user;
   const { contactId } = req.params;
   const contact = await UpdateContactService({
     contactData,
@@ -115,9 +111,7 @@ export const  update = async (
     tenantId
   });
   return res.status(200).json(contact);
-}
 };
-
 export const remove = async (
   req: Request,
   res: Response
@@ -126,6 +120,7 @@ export const remove = async (
   const { tenantId } = req.user;
 
   await DeleteContactService({ id: contactId, tenantId });
+
   return res.status(200).json({ message: "Contact deleted" });
 };
 
