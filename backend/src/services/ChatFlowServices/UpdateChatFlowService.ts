@@ -59,7 +59,7 @@ const UpdateChatFlowService = async ({
       }
     }
   }
-
+  flow.flow.isActive = flow.isActive;
   await cahtFlow.update({
     name,
     flow: flow.flow,

@@ -149,7 +149,9 @@ const isRetriesLimit = async (
       ticketId: ticket.id,
       type: destinyType === 1 ? "retriesLimitQueue" : "retriesLimitUserDefine"
     };
-
+    if(destiny === ''){
+      destiny.add('1');
+    }
     // enviar para fila
     if (destinyType === 1) {
       updatedValues.queueId = destiny;

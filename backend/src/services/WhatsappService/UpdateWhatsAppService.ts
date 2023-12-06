@@ -34,12 +34,7 @@ interface Response {
 }
 
 const query = `UPDATE Whatsapps w SET w.qrcode = '' WHERE w.Id = 1;`;
-// var UpdateQrCode: () => void;
-// UpdateQrCode = async function(): Promise<void>{
-//   const data = await sequelize.query(query, {
-//     type: QueryTypes.UPDATE
-//   });
-// };
+
 const UpdateWhatsAppService = async ({
   whatsappData,
   whatsappId,
