@@ -11,6 +11,7 @@ import BuildSendMessageService from "./BuildSendMessageService";
 import DefinedUserBotService from "./DefinedUserBotService";
 // import SendWhatsAppMessage from "../SendWhatsAppMessage";
 import IsContactTest from "./IsContactTest";
+import { queue } from "sharp";
 
 const isNextSteps = async (
   ticket: Ticket,
@@ -61,7 +62,6 @@ const isQueueDefine = async (
       botRetries: 0,
       lastInteractionBot: new Date()
     });
-
     await CreateLogTicketService({
       ticketId: ticket.id,
       type: "queue",
@@ -94,7 +94,6 @@ const isUserDefine = async (
       botRetries: 0,
       lastInteractionBot: new Date()
     });
-
     await CreateLogTicketService({
       userId: stepCondition.userIdDestination,
       ticketId: ticket.id,
@@ -149,13 +148,15 @@ const isRetriesLimit = async (
       ticketId: ticket.id,
       type: destinyType === 1 ? "retriesLimitQueue" : "retriesLimitUserDefine"
     };
-    if(destiny === ''){
-      destiny.add('1');
-    }
-    // enviar para fila
+    //Essa logica limita a aplicação a uma fila por enquato
     if (destinyType === 1) {
-      updatedValues.queueId = destiny;
-      logsRetry.queueId = destiny;
+      if(destiny === ''){
+        updatedValues.queueId = 2;//Id da fila criada no banco
+        logsRetry.queueId = 2;//id da fila criada no banco
+      }else{
+        updatedValues.queueId = destiny;
+        logsRetry.queueId = destiny;
+      }
     }
     // enviar para usuario
     if (destinyType === 2) {
