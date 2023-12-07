@@ -11,8 +11,7 @@ import BuildSendMessageService from "./BuildSendMessageService";
 import DefinedUserBotService from "./DefinedUserBotService";
 // import SendWhatsAppMessage from "../SendWhatsAppMessage";
 import IsContactTest from "./IsContactTest";
-import { Logger, loggers } from "winston";
-import { any } from "sequelize/types/lib/operators";
+import { queue } from "sharp";
 
 const isNextSteps = async (
   ticket: Ticket,
@@ -63,7 +62,6 @@ const isQueueDefine = async (
       botRetries: 0,
       lastInteractionBot: new Date()
     });
-
     await CreateLogTicketService({
       ticketId: ticket.id,
       type: "queue",
@@ -96,7 +94,6 @@ const isUserDefine = async (
       botRetries: 0,
       lastInteractionBot: new Date()
     });
-
     await CreateLogTicketService({
       userId: stepCondition.userIdDestination,
       ticketId: ticket.id,
@@ -140,7 +137,7 @@ const isRetriesLimit = async (
     ticket.botRetries >= maxRetryNumber - 1
   ) {
     const destinyType = flowConfig.configurations.maxRetryBotMessage.type;
-    var destiny  = flowConfig.configurations.maxRetryBotMessage;
+    const { destiny } = flowConfig.configurations.maxRetryBotMessage;
     const updatedValues: any = {
       chatFlowId: null,
       stepChatFlow: null,
@@ -151,13 +148,15 @@ const isRetriesLimit = async (
       ticketId: ticket.id,
       type: destinyType === 1 ? "retriesLimitQueue" : "retriesLimitUserDefine"
     };
-    if(destiny === ''){
-      destiny = '1';
-    }
-    // enviar para fila
+    //Essa logica limita a aplicação a uma fila por enquato
     if (destinyType === 1) {
-      updatedValues.queueId = destiny;
-      logsRetry.queueId = destiny;
+      if(destiny === ''){
+        updatedValues.queueId = 2;//Id da fila criada no banco
+        logsRetry.queueId = 2;//id da fila criada no banco
+      }else{
+        updatedValues.queueId = destiny;
+        logsRetry.queueId = destiny;
+      }
     }
     // enviar para usuario
     if (destinyType === 2) {
