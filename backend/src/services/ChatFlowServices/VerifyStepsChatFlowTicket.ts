@@ -11,6 +11,8 @@ import BuildSendMessageService from "./BuildSendMessageService";
 import DefinedUserBotService from "./DefinedUserBotService";
 // import SendWhatsAppMessage from "../SendWhatsAppMessage";
 import IsContactTest from "./IsContactTest";
+import { Logger, loggers } from "winston";
+import { any } from "sequelize/types/lib/operators";
 
 const isNextSteps = async (
   ticket: Ticket,
@@ -138,7 +140,7 @@ const isRetriesLimit = async (
     ticket.botRetries >= maxRetryNumber - 1
   ) {
     const destinyType = flowConfig.configurations.maxRetryBotMessage.type;
-    const { destiny } = flowConfig.configurations.maxRetryBotMessage;
+    var destiny  = flowConfig.configurations.maxRetryBotMessage;
     const updatedValues: any = {
       chatFlowId: null,
       stepChatFlow: null,
@@ -150,7 +152,7 @@ const isRetriesLimit = async (
       type: destinyType === 1 ? "retriesLimitQueue" : "retriesLimitUserDefine"
     };
     if(destiny === ''){
-      destiny.add('1');
+      destiny = '1';
     }
     // enviar para fila
     if (destinyType === 1) {
