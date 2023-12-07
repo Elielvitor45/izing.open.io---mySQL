@@ -298,7 +298,7 @@ export default {
   data () {
     return {
       username,
-      domainExperimentalsMenus: ['@izing.io'],
+      domainExperimentalsMenus: ['@gmail.com'],
       miniState: true,
       userProfile: 'user',
       modalUsuario: false,
