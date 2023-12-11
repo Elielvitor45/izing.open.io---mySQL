@@ -37,6 +37,7 @@ const isNextSteps = async (
     if (!nextStep) return;
 
     for (const interaction of nextStep.interactions) {
+      console.log('Area1')
       await BuildSendMessageService({
         msg: interaction,
         tenantId: ticket.tenantId,
@@ -169,7 +170,7 @@ const isRetriesLimit = async (
 
     socketEmit({
       tenantId: ticket.tenantId,
-      type: "ticket@update",
+      type: "ticket:update",
       payload: ticket
     });
 
@@ -220,7 +221,7 @@ const isAnswerCloseTicket = async (
 
     socketEmit({
       tenantId: ticket.tenantId,
-      type: "ticket@update",
+      type: "ticket:update",
       payload: ticket
     });
 
@@ -294,7 +295,7 @@ const VerifyStepsChatFlowTicket = async (
 
         socketEmit({
           tenantId: ticket.tenantId,
-          type: "ticket@update",
+          type: "ticket:update",
           payload: ticket
         });
 
@@ -318,9 +319,10 @@ const VerifyStepsChatFlowTicket = async (
 
           const messageData = {
             body:
-              flowConfig.configurations.notOptionsSelectMessage.message ||
-              //Desculpe! Não entendi sua resposta. Vamos tentar novamente! Escolha uma opção válida.
-              "",
+              flowConfig.configurations.notOptionsSelectMessage.message,
+              // ||
+              // //Desculpe! Não entendi sua resposta. Vamos tentar novamente! Escolha uma opção válida.
+              // "",
             fromMe: true,
             read: true,
             sendType: "bot"
@@ -340,6 +342,7 @@ const VerifyStepsChatFlowTicket = async (
           });
         }
         for (const interaction of step.interactions) {
+          console.log('Area1')
           await BuildSendMessageService({
             msg: interaction,
             tenantId: ticket.tenantId,

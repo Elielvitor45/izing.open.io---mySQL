@@ -64,10 +64,10 @@ export const store = async (req: Request, res: Response): Promise<Response> => {
   const medias = req.files as Express.Multer.File[];
   const ticket = await ShowTicketService({ id: ticketId, tenantId });
 
-  try {
+  try{
     SetTicketMessagesAsRead(ticket);
-  } catch (error) {
-    console.log("SetTicketMessagesAsRead", error);
+  }catch(error){
+    console.log("try SetTicketMessagesAsRead",error)
   }
 
   try {

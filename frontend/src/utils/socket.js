@@ -23,7 +23,6 @@ socket.io.on('error', (error) => {
 
 socket.on('disconnect', (reason) => {
   console.info('socket disconnect', reason)
-
   // if (reason === "io server disconnect") {
   //   // the disconnection was initiated by the server, you need to reconnect manually
   //   socket.connect();

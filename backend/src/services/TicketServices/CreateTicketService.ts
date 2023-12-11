@@ -56,7 +56,7 @@ const CreateTicketService = async ({
 
   socketEmit({
     tenantId,
-    type: "ticket@update",
+    type: "ticket:update",
     payload: ticket
   });
 

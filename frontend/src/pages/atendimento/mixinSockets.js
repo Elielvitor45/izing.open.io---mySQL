@@ -6,9 +6,9 @@ import { socketIO } from 'src/utils/socket'
 const socket = socketIO()
 
 const userId = +localStorage.getItem('userId')
+// const messageId = +localStorage.getItem('quotedMsgId')
 
 // localStorage.debug = '*'
-
 socket.on(`tokenInvalid:${socket.id}`, () => {
   socket.disconnect()
   localStorage.removeItem('token')
@@ -31,7 +31,17 @@ export default {
       }, 200)
     },
     socketMessagesList () {
-
+      // socket.on('connect', () => {
+      //   socket.on(`${usuario.messageId}:message`, data => {
+      //     if (data.action === 'update' && data.ticket.messageId === messageId) {
+      //       if (data.ticket.status === 'open' && !data.ticket.isTransference) {
+      //         this.$store.commit('UPDATE_MESSAGES', data.payload)
+      //         console.log(messageId)
+      //         this.scrollToBottom()
+      //       }
+      //     }
+      //   })
+      // })
     },
     socketTicket () {
       socket.on('connect', () => {

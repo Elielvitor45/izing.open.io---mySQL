@@ -117,7 +117,6 @@
             :disabled="loading || ticketFocado.status !== 'open'" />
         </q-item>
       </q-list>
-
       <q-banner class="text-grey-8"
         v-if="mensagensParaEncaminhar.length > 0">
         <span class="text-bold text-h5"> {{ mensagensParaEncaminhar.length }} de 10 mensagens</span> selecionadas para
@@ -274,7 +273,7 @@ import mixinSockets from './mixinSockets'
 import InfiniteLoading from 'vue-infinite-loading'
 import { ListarContatos } from 'src/service/contatos'
 import { EncaminharMensagem } from 'src/service/tickets'
-// import whatsBackground from 'src/assets/wa-background.png'
+import whatsBackground from 'src/assets/wa-background.png'
 
 export default {
   name: 'Chat',
@@ -322,10 +321,10 @@ export default {
     },
     style () {
       return {
-        // backgroundImage: `url(${whatsBackground}) !important`
-        // backgroundRepeat: 'no-repeat !important'
-        // backgroundPosition: 'center !important',
-        // backgroundSize: '50% !important'
+        backgroundImage: `url(${whatsBackground})`,
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
+        backgroundSize: '50%',
         backgroundColor: 'red'
       }
     },
@@ -388,7 +387,7 @@ export default {
           this.contatos = data.contacts
         } else {
           this.contatos = [{}]
-          // this.$refs.selectAutoCompleteContato.toggleOption({}, true)
+          this.$refs.selectAutoCompleteContato.toggleOption({}, true)
         }
       })
       this.loading = false

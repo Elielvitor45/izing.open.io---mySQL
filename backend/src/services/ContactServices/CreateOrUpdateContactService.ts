@@ -89,7 +89,7 @@ const CreateOrUpdateContactService = async ({
 
   socketEmit({
     tenantId,
-    type: "contact@update",
+    type: "contact:update",
     payload: contact
   });
 

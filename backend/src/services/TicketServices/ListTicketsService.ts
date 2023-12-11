@@ -39,7 +39,6 @@ const ListTicketsService = async ({
   tenantId,
   profile
 }: Request): Promise<Response> => {
-  console.log(date, includeNotQueueDefined);
   // check is admin
   const isAdminShowAll = showAll == "true" && profile === "admin";
   const isUnread =

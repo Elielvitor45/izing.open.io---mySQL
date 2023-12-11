@@ -84,7 +84,7 @@ const FindOrCreateTicketService = async ({
     await ticket.update({ unreadMessages });
     socketEmit({
       tenantId,
-      type: "ticket@update",
+      type: "ticket:update",
       payload: ticket
     });
     return ticket;
@@ -128,7 +128,7 @@ const FindOrCreateTicketService = async ({
 
       socketEmit({
         tenantId,
-        type: "ticket@update",
+        type: "ticket:update",
         payload: ticket
       });
 
@@ -178,7 +178,7 @@ const FindOrCreateTicketService = async ({
 
       socketEmit({
         tenantId,
-        type: "ticket@update",
+        type: "ticket:update",
         payload: ticket
       });
 
@@ -210,7 +210,7 @@ const FindOrCreateTicketService = async ({
 
   socketEmit({
     tenantId,
-    type: "ticket@update",
+    type: "ticket:update",
     payload: ticket
   });
 

@@ -148,7 +148,7 @@ const Waba360SendMessagesSystem = async (
 
     socketEmit({
       tenantId: ticket.tenantId,
-      type: "chat@ack",
+      type: "chat:ack",
       payload: {
         ...messageToUpdate.dataValues,
         mediaUrl: messageItem.mediaUrl, // necessário para enviar error no envio do socket - call size

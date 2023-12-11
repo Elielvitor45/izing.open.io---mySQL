@@ -32,7 +32,7 @@ const DeleteContactService = async ({
 
   socketEmit({
     tenantId,
-    type: "contact@delete",
+    type: "contact:delete",
     payload: contact
   });
 };

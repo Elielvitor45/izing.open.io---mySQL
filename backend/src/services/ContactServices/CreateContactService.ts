@@ -53,7 +53,7 @@ const CreateContactService = async ({
 
   socketEmit({
     tenantId,
-    type: "contact@update",
+    type: "contact:update",
     payload: contact
   });
 

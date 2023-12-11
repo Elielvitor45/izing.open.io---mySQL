@@ -1,16 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { MessageMedia, Message as WbotMessage } from "whatsapp-web.js";
 import fs from "fs";
-import { v4 as uuid } from "uuid";
-import axios from "axios";
-import mime from "mime-types";
-import { join } from "path";
+// import { v4 as uuid } from "uuid";
+// import axios from "axios";
+// import mime from "mime-types";
+// import { join } from "path";
 import { logger } from "../utils/logger";
 import { getWbot } from "../libs/wbot";
-import UpsertMessageAPIService from "../services/ApiMessageService/UpsertMessageAPIService";
+// import UpsertMessageAPIService from "../services/ApiMessageService/UpsertMessageAPIService";
 import Queue from "../libs/Queue";
-import CheckIsValidContact from "../services/WbotServices/CheckIsValidContact";
-import AppError from "../errors/AppError";
+// import CheckIsValidContact from "../services/WbotServices/CheckIsValidContact";
+// import AppError from "../errors/AppError";
 import VerifyContact from "../services/WbotServices/helpers/VerifyContact";
 import FindOrCreateTicketService from "../services/TicketServices/FindOrCreateTicketService";
 import CreateMessageSystemService from "../services/MessageServices/CreateMessageSystemService";

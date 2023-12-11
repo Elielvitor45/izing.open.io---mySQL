@@ -41,7 +41,7 @@ const MessengerMarkRead = async (
       await message.update({ ack: 3 });
       socketEmit({
         tenantId,
-        type: "chat@ack",
+        type: "chat:ack",
         payload: {
           ...message.dataValues,
           mediaUrl: message.mediaUrl, // necessário para enviar error no envio do socket - call size

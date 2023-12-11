@@ -46,7 +46,7 @@ AND (t.queueId IS NULL AND t.userId IS NULL)
         await ticket.update(values);
         socketEmit({
           tenantId: ticket.tenantId,
-          type: "ticket@update",
+          type: "ticket:update",
           payload: ticket
         });
       }
