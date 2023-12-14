@@ -27,7 +27,7 @@ import LogTicket from "../models/LogTicket";
 import ChatFlow from "../models/ChatFlow";
 import * as QueueJobs from "../libs/Queue";
 import { logger } from "../utils/logger";
-
+import Clientes from "../models/Clientes";
 interface CustomSequelize extends Sequelize {
   afterConnect?: any;
   afterDisconnect?: any;
@@ -67,16 +67,7 @@ const models = [
   LogTicket,
   ChatFlow
 ];
-
 sequelize.addModels(models);
-
-// const startLoopDb = () => {
-//   // eslint-disable-next-line no-underscore-dangle
-//   global._loopDb = setInterval(() => {
-//     FindUpdateTicketsInactiveChatBot();
-//     console.log("DATABASE CONNECT");
-//   }, 60000);
-// };
 
 sequelize.afterConnect(() => {
   logger.info("DATABASE CONNECT");
@@ -90,4 +81,26 @@ sequelize.afterDisconnect(() => {
   // eslint-disable-next-line no-underscore-dangle
   // clearInterval(global._loopDb);
 });
-export default sequelize;
+
+interface CustomSequelize extends Sequelize {
+  afterConnect?: any;
+  afterDisconnect?: any;
+}
+const dbConfig2 = require("../config/asteriskdb");
+const asterisksquelize: CustomSequelize = new Sequelize(dbConfig2);
+const models2 = [
+  Clientes
+];
+
+asterisksquelize.addModels(models2);
+asterisksquelize.afterConnect(() => {
+  logger.info("DATABASE ASTERISK CONNECT");
+});
+
+asterisksquelize.afterDisconnect(() => {
+  logger.info("DATABASE ASTERISK DISCONNECT");
+  // eslint-disable-next-line no-underscore-dangle
+  // clearInterval(global._loopDb);
+});
+
+export  {asterisksquelize,sequelize};

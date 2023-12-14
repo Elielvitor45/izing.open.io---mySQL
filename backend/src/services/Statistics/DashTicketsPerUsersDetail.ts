@@ -1,5 +1,5 @@
 import { QueryTypes } from "sequelize";
-import sequelize from "../../database";
+import {asterisksquelize,sequelize} from "../../database";
 
 interface Request {
   startDate: string;

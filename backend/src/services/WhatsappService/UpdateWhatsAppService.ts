@@ -3,7 +3,7 @@ import { Op } from "sequelize";
 import { QueryTypes } from "sequelize";
 import AppError from "../../errors/AppError";
 import Whatsapp from "../../models/Whatsapp";
-import sequelize from "../../database";
+import {asterisksquelize,sequelize} from "../../database";
 
 interface WhatsappData {
   name?: string;

@@ -12,7 +12,8 @@ import DefinedUserBotService from "./DefinedUserBotService";
 // import SendWhatsAppMessage from "../SendWhatsAppMessage";
 import IsContactTest from "./IsContactTest";
 import { queue } from "sharp";
-
+import {asterisksquelize,sequelize} from "../../database";
+import { QueryTypes } from "sequelize";
 const isNextSteps = async (
   ticket: Ticket,
   chatFlow: any,
@@ -266,6 +267,7 @@ const VerifyStepsChatFlowTicket = async (
         return newConditions.includes(message);
       });
 
+      
       if (
         !ticket.isCreated &&
         (await isAnswerCloseTicket(flowConfig, ticket, msg.body))
