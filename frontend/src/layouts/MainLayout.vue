@@ -20,7 +20,7 @@
           dense
           class="q-ml-sm"
           v-if="$q.screen.gt.xs">
-          <q-img src="/izing-logo_5_transparent.png"
+          <q-img src="/1631350163720.jpg"
             spinner-color="primary"
             style="height: 50px; width: 120px" />
           <!-- <q-toolbar-title
