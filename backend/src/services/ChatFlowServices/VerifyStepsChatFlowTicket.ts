@@ -278,7 +278,7 @@ const VerifyStepsChatFlowTicket = async (
       });
 
 
-      const teste = await infoCliente(34876);
+      const teste = await infoCliente(34876);//Não foi adicionado no fluxo ainda
 
       if (
         !ticket.isCreated &&
@@ -338,22 +338,23 @@ const VerifyStepsChatFlowTicket = async (
             read: true,
             sendType: "bot"
           };
-          await CreateMessageSystemService({
-            msg: messageData,
-            tenantId: ticket.tenantId,
-            ticket,
-            sendType: messageData.sendType,
-            status: "pending"
-          });
-
-          // tratar o número de retentativas do bot
-          await ticket.update({
-            botRetries: ticket.botRetries + 1,
-            lastInteractionBot: new Date()
-          });
+          if(messageData.body != ''){
+            await CreateMessageSystemService({
+              msg: messageData,
+              tenantId: ticket.tenantId,
+              ticket,
+              sendType: messageData.sendType,
+              status: "pending"
+            });  
+            
+            await ticket.update({
+              botRetries: ticket.botRetries + 1,
+              lastInteractionBot: new Date()
+            });
+          }
+          
         }
         for (const interaction of step.interactions) {
-          console.log('Area1')
           await BuildSendMessageService({
             msg: interaction,
             tenantId: ticket.tenantId,

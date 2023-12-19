@@ -48,18 +48,15 @@ const verifyLimitMessages = async (contactId: number,message:string):Promise<boo
     type: QueryTypes.SELECT
   });
   var count = 0;
-  await data.forEach((string) => {
-    if(string.body === message){
+  await data.forEach((item) => {
+    if(item.body === message){
       count += 1;
     }
   });
-  if(count>= 3){
-    return false;
-  }else{
-    return true;
-  }
+  if (count >= 3) return false;
+  
+  return true;
 }
-
 const CreateMessageCloseService = async ({
   msg,
   tenantId,

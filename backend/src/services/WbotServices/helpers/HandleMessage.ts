@@ -101,16 +101,15 @@ const HandleMessage = async (
           resolve();
           return;
         }
-
         if (msg.hasMedia) {
           await VerifyMediaMessage(msg, ticket, contact);
         } else {
           await VerifyMessage(msg, ticket, contact);
         }
         // await VerifyAutoReplyActionTicket(msg, ticket);
-        const b = await verifyBusinessHours(msg, ticket);
-        if(b === false || msg.body === ''){
-        }else{
+        const verifyClose = await verifyBusinessHours(msg, ticket);
+        if (verifyClose === false || msg.body === '') {
+        } else {
           await VerifyStepsChatFlowTicket(msg, ticket);
         }
         const apiConfig: any = ticket.apiConfig || {};
