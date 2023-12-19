@@ -1,11 +1,12 @@
-// import { QueryTypes } from "sequelize";
-// import asteriskSequelize from "../../database/asteriskConfig";
+import Clientes from "../../asteriskmodels/Clientes";
 
-// const query = `SELECT * FROM Clientes WHERE idPas = 41645`
+interface Response {
+    cliente: Clientes | null;
+}
 
-//       const CheckPasService = async (): Promise<any> => {
-//           const data = await asteriskSequelize.query(query, {type: QueryTypes.SELECT})
-//           console.log(data)
-//       }
+const infoCliente = async (idPas: number): Promise<Response> => {
+    const cliente = await Clientes.findByPk(idPas);
+    return { cliente };
+};
 
-//       export default CheckPasService;
+export default infoCliente;

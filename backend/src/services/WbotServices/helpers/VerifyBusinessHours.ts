@@ -7,12 +7,14 @@ import { fromUnixTime, parse, isWithinInterval } from "date-fns";
 import Ticket from "../../../models/Ticket";
 import ShowBusinessHoursAndMessageService from "../../TenantServices/ShowBusinessHoursAndMessageService";
 import CreateMessageSystemService from "../../MessageServices/CreateMessageSystemService";
+import CreateMessageCloseService from "../../MessageServices/CreateMessageCloseService";
 // import { sleepRandomTime } from "../../../utils/sleepRandomTime";
+
 
 const verifyBusinessHours = async (
   msg: WbotMessage | any,
   ticket: Ticket
-): Promise<void> => {
+): Promise<Boolean|void> => {
   // Considerar o envio da mensagem de ausência se:
   // Ticket não está no fluxo de autoresposta
   // Ticket não estiver fechado
@@ -35,11 +37,12 @@ const verifyBusinessHours = async (
 
     // Não existir configuração para a data, não deverá enviar
     // mensagem de ausencia
-    if (!businessDay) return;
+    
+    if (!businessDay) return true;
 
     // Se o tipo for "O" open - significa que o estabelecimento
     // funciona o dia inteiro e deve desconsiderar o envio de mensagem de ausência
-    if (businessDay.type === "O") return;
+    if (businessDay.type === "O") return true;
 
     // verificar se data da mensagem está dendo do primerio período de tempo
     const isHoursFistInterval = isWithinInterval(dateMsg, {
@@ -78,13 +81,14 @@ const verifyBusinessHours = async (
         sendType: "bot",
         tenantId: ticket.tenantId
       };
-      await CreateMessageSystemService({
+      await CreateMessageCloseService({
         msg: messageData,
         tenantId: ticket.tenantId,
         ticket,
         sendType: messageData.sendType,
         status: "pending"
       });
+      return false;
     }
   }
 };

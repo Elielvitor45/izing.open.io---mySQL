@@ -11,9 +11,9 @@ import BuildSendMessageService from "./BuildSendMessageService";
 import DefinedUserBotService from "./DefinedUserBotService";
 // import SendWhatsAppMessage from "../SendWhatsAppMessage";
 import IsContactTest from "./IsContactTest";
-import { queue } from "sharp";
-import {asterisksquelize,sequelize} from "../../database";
-import { QueryTypes } from "sequelize";
+import { request } from "http";
+import infoCliente from "../CheckAsteriskService/CheckPasService";
+
 const isNextSteps = async (
   ticket: Ticket,
   chatFlow: any,
@@ -64,12 +64,19 @@ const isQueueDefine = async (
       botRetries: 0,
       lastInteractionBot: new Date()
     });
-    await CreateLogTicketService({
-      ticketId: ticket.id,
-      type: "queue",
-      queueId: stepCondition.queueId
-    });
-
+    if(stepCondition.queueId === 2){
+      await CreateLogTicketService({
+        ticketId: ticket.id,
+        type: "queue",
+        queueId: undefined
+      });
+    }else{
+      await CreateLogTicketService({
+        ticketId: ticket.id,
+        type: "queue",
+        queueId: stepCondition.queueId
+      });
+    }
     if (flowConfig?.configurations?.autoDistributeTickets) {
       DefinedUserBotService(
         ticket,
@@ -150,12 +157,11 @@ const isRetriesLimit = async (
       ticketId: ticket.id,
       type: destinyType === 1 ? "retriesLimitQueue" : "retriesLimitUserDefine"
     };
-    //Essa logica limita a aplicação a uma fila por enquato
     if (destinyType === 1) {
-      if(destiny === ''){
-        updatedValues.queueId = 2;//Id da fila criada no banco
-        logsRetry.queueId = 2;//id da fila criada no banco
-      }else{
+       if(destiny === ''){
+         updatedValues.queueId = 1;
+         logsRetry.queueId = 1;
+       }else{
         updatedValues.queueId = destiny;
         logsRetry.queueId = destiny;
       }
@@ -168,7 +174,6 @@ const isRetriesLimit = async (
 
     ticket.update(updatedValues);
     await CreateLogTicketService(logsRetry);
-
     socketEmit({
       tenantId: ticket.tenantId,
       type: "ticket:update",
@@ -230,7 +235,12 @@ const isAnswerCloseTicket = async (
   }
   return false;
 };
-
+class Ab{
+  constructor(idPas){
+    this.idPas = idPas;
+  }
+  idPas:number;
+}
 const VerifyStepsChatFlowTicket = async (
   msg: WbotMessage | any,
   ticket: Ticket | any
@@ -267,7 +277,9 @@ const VerifyStepsChatFlowTicket = async (
         return newConditions.includes(message);
       });
 
-      
+
+      const teste = await infoCliente(34876);
+
       if (
         !ticket.isCreated &&
         (await isAnswerCloseTicket(flowConfig, ticket, msg.body))
@@ -317,14 +329,11 @@ const VerifyStepsChatFlowTicket = async (
 
         // se ticket tiver sido criado, ingnorar na primeria passagem
         if (!ticket.isCreated) {
-          if (await isRetriesLimit(ticket, flowConfig)) return;
+          if (await isRetriesLimit(ticket, flowConfig)) return; //pode ser aqui
 
           const messageData = {
             body:
               flowConfig.configurations.notOptionsSelectMessage.message,
-              // ||
-              // //Desculpe! Não entendi sua resposta. Vamos tentar novamente! Escolha uma opção válida.
-              // "",
             fromMe: true,
             read: true,
             sendType: "bot"
@@ -348,7 +357,7 @@ const VerifyStepsChatFlowTicket = async (
           await BuildSendMessageService({
             msg: interaction,
             tenantId: ticket.tenantId,
-            ticket
+            ticket,
           });
         }
       }

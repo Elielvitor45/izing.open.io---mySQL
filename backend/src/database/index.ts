@@ -27,7 +27,7 @@ import LogTicket from "../models/LogTicket";
 import ChatFlow from "../models/ChatFlow";
 import * as QueueJobs from "../libs/Queue";
 import { logger } from "../utils/logger";
-import Clientes from "../models/Clientes";
+import Clientes from "../asteriskmodels/Clientes";
 interface CustomSequelize extends Sequelize {
   afterConnect?: any;
   afterDisconnect?: any;

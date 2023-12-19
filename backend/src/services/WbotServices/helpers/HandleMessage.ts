@@ -108,8 +108,11 @@ const HandleMessage = async (
           await VerifyMessage(msg, ticket, contact);
         }
         // await VerifyAutoReplyActionTicket(msg, ticket);
-        await VerifyStepsChatFlowTicket(msg, ticket);
-
+        const b = await verifyBusinessHours(msg, ticket);
+        if(b === false || msg.body === ''){
+        }else{
+          await VerifyStepsChatFlowTicket(msg, ticket);
+        }
         const apiConfig: any = ticket.apiConfig || {};
         if (
           !msg.fromMe &&
@@ -134,7 +137,7 @@ const HandleMessage = async (
           });
         }
 
-        await verifyBusinessHours(msg, ticket);
+        
         resolve();
       } catch (err) {
         logger.error(err);

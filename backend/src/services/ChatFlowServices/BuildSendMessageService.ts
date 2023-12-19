@@ -8,7 +8,9 @@ import Message from "../../models/Message";
 import socketEmit from "../../helpers/socketEmit";
 import ChatFlow from "../../models/ChatFlow";
 import { QueryTypes } from "sequelize";
-import { ms } from "date-fns/locale";
+
+
+
 interface MessageData {
   ticketId: number;
   body: string;
@@ -45,7 +47,7 @@ interface MessageRequest {
 interface Request {
   msg: MessageRequest;
   tenantId: string | number;
-  ticket: Ticket;
+  ticket: Ticket|any;
   userId?: number | string;
 }
 
@@ -56,12 +58,18 @@ const BuildSendMessageService = async ({
   ticket,
   userId
 }: Request): Promise<void> => {
+  
+  const chatFlow = await ticket.getChatFlow();
+  if(chatFlow.name === null ||chatFlow.name === undefined){
+    return;
+  }else{}
   const query = `
-    SELECT isActive FROM ChatFlow WHERE NAME = 'CHATTESTE';
+    SELECT isActive FROM ChatFlow WHERE NAME = '${chatFlow.name}';
     `;
   const chatflw: any = await ChatFlow.sequelize?.query(query, {
     type: QueryTypes.SELECT
   });
+  console.log(chatflw[0].isActive);
    if(chatflw[0].isActive === 1){
     const messageData: MessageData = {
       ticketId: ticket.id,
@@ -113,7 +121,7 @@ const BuildSendMessageService = async ({
         if (!messageCreated) {
           throw new Error("ERR_CREATING_MESSAGE_SYSTEM");
         }
-  
+
         await ticket.update({
           lastMessage: messageCreated.body,
           lastMessageAt: new Date().getTime()
@@ -164,6 +172,7 @@ const BuildSendMessageService = async ({
           lastMessageAt: new Date().getTime(),
           answered: true
         });
+        //AQUI QUE A MENSAGEM E ENVIADA
   
         // global.rabbitWhatsapp.publishInQueue(
         //   `whatsapp::${tenantId}`,

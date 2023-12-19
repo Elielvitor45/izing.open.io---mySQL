@@ -31,13 +31,11 @@ const CreateLogTicketService = async ({
   ticketId,
   queueId
 }: Request): Promise<void> => {
-  await LogTicket.create({
-    userId,
-    ticketId,
-    type,
-    queueId
-  });
-
+    await LogTicket.create({
+      userId,
+      ticketId,
+      type,
+      queueId
+    });
 };
-
 export default CreateLogTicketService;
