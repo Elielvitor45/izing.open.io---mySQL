@@ -50,6 +50,7 @@
     <ModalFila
       :modalFila.sync="modalFila"
       :filaEdicao.sync="filaEdicao"
+      :queueData="filas"
       @modal-fila:criada="filaCriada"
       @modal-fila:editada="filaEditada"
     />
