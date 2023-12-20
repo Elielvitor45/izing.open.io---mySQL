@@ -246,7 +246,6 @@ const VerifyStepsChatFlowTicket = async (
   ticket: Ticket | any
 ): Promise<void> => {
   let celularTeste; // ticket.chatFlow?.celularTeste;
-
   if (
     ticket.chatFlowId &&
     ticket.status === "pending" &&
@@ -329,8 +328,7 @@ const VerifyStepsChatFlowTicket = async (
 
         // se ticket tiver sido criado, ingnorar na primeria passagem
         if (!ticket.isCreated) {
-          if (await isRetriesLimit(ticket, flowConfig)) return; //pode ser aqui
-
+          if (await isRetriesLimit(ticket, flowConfig)) return; 
           const messageData = {
             body:
               flowConfig.configurations.notOptionsSelectMessage.message,
@@ -338,7 +336,7 @@ const VerifyStepsChatFlowTicket = async (
             read: true,
             sendType: "bot"
           };
-          if(messageData.body != ''){
+        if(messageData.body != ''){
             await CreateMessageSystemService({
               msg: messageData,
               tenantId: ticket.tenantId,
@@ -346,7 +344,7 @@ const VerifyStepsChatFlowTicket = async (
               sendType: messageData.sendType,
               status: "pending"
             });  
-            
+
             await ticket.update({
               botRetries: ticket.botRetries + 1,
               lastInteractionBot: new Date()

@@ -151,8 +151,7 @@ const verifyAutoReplyActionTicket = async (
         // se ticket tiver sido criado, ingnorar na primeria passagem
         if (!ticket.isCreated) {
           const messageData = {
-            //Desculpe! Não entendi sua resposta. Vamos tentar novamente! Escolha uma opção válida.
-            body: "",
+            body: "Desculpe! Não entendi sua resposta. Vamos tentar novamente! Escolha uma opção válida.",
             fromMe: true,
             read: true,
             sendType: "bot"

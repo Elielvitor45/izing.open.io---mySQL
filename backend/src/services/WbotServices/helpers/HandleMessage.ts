@@ -17,7 +17,8 @@ import VerifyStepsChatFlowTicket from "../../ChatFlowServices/VerifyStepsChatFlo
 import Queue from "../../../libs/Queue";
 // import isMessageExistsService from "../../MessageServices/isMessageExistsService";
 import Setting from "../../../models/Setting";
-
+import Timer from "../LimitTimeService";
+var compareActivation = false;
 interface Session extends Client {
   id: number;
 }
@@ -105,6 +106,16 @@ const HandleMessage = async (
           await VerifyMediaMessage(msg, ticket, contact);
         } else {
           await VerifyMessage(msg, ticket, contact);
+        }
+        
+        try {
+          if (compareActivation === false) {
+            compareActivation = true;
+            setInterval(Timer,300000);
+          }
+        } catch (error) {
+          compareActivation = false;
+          console.log(error);
         }
         // await VerifyAutoReplyActionTicket(msg, ticket);
         const verifyClose = await verifyBusinessHours(msg, ticket);
