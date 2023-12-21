@@ -38,7 +38,6 @@ const isNextSteps = async (
     if (!nextStep) return;
 
     for (const interaction of nextStep.interactions) {
-      console.log('Area1')
       await BuildSendMessageService({
         msg: interaction,
         tenantId: ticket.tenantId,
