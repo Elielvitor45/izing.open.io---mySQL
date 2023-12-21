@@ -13,6 +13,10 @@ import DefinedUserBotService from "./DefinedUserBotService";
 import IsContactTest from "./IsContactTest";
 import { request } from "http";
 import infoCliente from "../CheckAsteriskService/CheckPasService";
+import CheckCustomer from "../CheckAsteriskService/VerifyClient";
+import { and } from "sequelize";
+import { any } from "bluebird";
+
 
 const isNextSteps = async (
   ticket: Ticket,
@@ -22,11 +26,12 @@ const isNextSteps = async (
 ): Promise<void> => {
   // action = 0: enviar para proximo step: nextStepId
   if (stepCondition.action === 0) {
-    await ticket.update({
-      stepChatFlow: stepCondition.nextStepId,
-      botRetries: 0,
-      lastInteractionBot: new Date()
-    });
+      await ticket.update({
+        stepChatFlow: stepCondition.nextStepId,
+        botRetries: 0,
+        lastInteractionBot: new Date()
+      });
+    
 
     const nodesList = [...chatFlow.flow.nodeList];
 
@@ -240,10 +245,35 @@ class Ab{
   }
   idPas:number;
 }
+
+const CreateMessagePas = async(body,verifyStepCondition,ticket:Ticket | any): Promise<void> => {
+  await ticket.update({
+    stepChatFlow: verifyStepCondition.nextStepId, //Vai ter que ser modificado
+    botRetries: 0,
+    lastInteractionBot: new Date()
+  });
+  const messageData = {
+    body: body,
+    fromMe: true,
+    read: true,
+    sendType: "bot"
+  };
+  await CreateMessageSystemService({
+    msg: messageData,
+    tenantId: ticket.tenantId,
+    ticket,
+    sendType: messageData.sendType,
+    status: "pending"
+  });
+}
+
+
+
 const VerifyStepsChatFlowTicket = async (
   msg: WbotMessage | any,
   ticket: Ticket | any
 ): Promise<void> => {
+  
   let celularTeste; // ticket.chatFlow?.celularTeste;
   if (
     ticket.chatFlowId &&
@@ -267,24 +297,37 @@ const VerifyStepsChatFlowTicket = async (
       );
 
       // verificar condição com a ação do step
-      const stepCondition = step.conditions.find((conditions: any) => {
+      var stepCondition = step.conditions.find((conditions: any) => {
         const newConditions = conditions.condition.map((c: any) =>
           String(c).toLowerCase().trim()
         );
         const message = String(msg.body).toLowerCase().trim();
         return newConditions.includes(message);
       });
-
-
-      const teste = await infoCliente(34876);//Não foi adicionado no fluxo ainda
-
+      // step.conditions = step.conditions.map(function(c){ - Parte utilizada apenas para testes.
+      //   c.type = 'u';
+      //   return c;
+      // });
+      // Adicionado para verificar o PAS e linkar com o banco ASTERISK
+      var pasCondition;
+      const verifyStepCondition = step.conditions.find((conditions: any) => {
+        if (conditions.type.includes('u')) {
+          return true;
+        } else {
+          return undefined;
+        }
+      });
+      if(verifyStepCondition) {
+        pasCondition = await CheckCustomer(msg.body);
+      }
+      
       if (
         !ticket.isCreated &&
         (await isAnswerCloseTicket(flowConfig, ticket, msg.body))
       )
         return;
 
-      if (stepCondition && !ticket.isCreated) {
+      if (stepCondition && !ticket.isCreated || verifyStepCondition && !ticket.isCreated) {
         // await CreateAutoReplyLogsService(stepAutoReplyAtual, ticket, msg.body);
         // Verificar se rotina em teste
         if (
@@ -296,24 +339,32 @@ const VerifyStepsChatFlowTicket = async (
         )
           return;
 
-        // action = 0: enviar para proximo step: nextStepId
-        await isNextSteps(ticket, chatFlow, step, stepCondition);
-
-        // action = 1: enviar para fila: queue
-        await isQueueDefine(ticket, flowConfig, step, stepCondition);
+        
+        if(pasCondition){
+          CreateMessagePas(`MEU CONSAGRADO, VOCE E VALIDO, E SEU NOME E ${pasCondition.Nome}`,verifyStepCondition,ticket);
+        }else if(stepCondition === undefined){
+          CreateMessagePas(`MEU CONSAGRADO, VOCE NAO E VALIDO`,verifyStepCondition,ticket);
+        }else{
+          
+          // action = 0: enviar para proximo step: nextStepId
+          await isNextSteps(ticket, chatFlow, step, stepCondition);
+          // action = 1: enviar para fila: queue
+          await isQueueDefine(ticket, flowConfig, step, stepCondition);
 
         // action = 2: enviar para determinado usuário
-        await isUserDefine(ticket, step, stepCondition);
-
+          await isUserDefine(ticket, step, stepCondition);
+        }
         socketEmit({
           tenantId: ticket.tenantId,
           type: "ticket:update",
           payload: ticket
         });
-
-        if (stepCondition.action === 1 || stepCondition.action === 2) {
-          await sendWelcomeMessage(ticket, flowConfig);
+        if(!stepCondition === undefined && verifyStepCondition===undefined){
+          if (stepCondition.action === 1 || stepCondition.action === 2) {
+            await sendWelcomeMessage(ticket, flowConfig);
+          }
         }
+        
       } else {
         // Verificar se rotina em teste
         if (
@@ -352,7 +403,7 @@ const VerifyStepsChatFlowTicket = async (
           
         }
         for (const interaction of step.interactions) {
-          await BuildSendMessageService({
+           await BuildSendMessageService({
             msg: interaction,
             tenantId: ticket.tenantId,
             ticket,
