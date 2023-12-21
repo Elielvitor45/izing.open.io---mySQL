@@ -16,6 +16,7 @@ import infoCliente from "../CheckAsteriskService/CheckPasService";
 import CheckCustomer from "../CheckAsteriskService/VerifyClient";
 import { and } from "sequelize";
 import { any } from "bluebird";
+import { promises } from "fs";
 
 
 const isNextSteps = async (
@@ -246,14 +247,32 @@ class Ab{
   idPas:number;
 }
 
-const CreateMessagePas = async(body,verifyStepCondition,ticket:Ticket | any): Promise<void> => {
+const SendMessagePas = async(ticket,verifyStepCondition, pasCondition,chatFlow): Promise<void> => {
+  if(pasCondition){
+    const nodesList = [...chatFlow.flow.nodeList];
+    const nextStep = nodesList.find(
+      (n: any) => n.id === verifyStepCondition.nextStepId
+    );
+    if(!nextStep) return;
+    for (const interaction of nextStep.interactions) {
+      await BuildSendMessageService({
+        msg: interaction,
+        tenantId: ticket.tenantId,
+        ticket
+      });
+    }
+    await ticket.update({
+      stepChatFlow: verifyStepCondition.nextStepId, 
+      botRetries: 0,
+      lastInteractionBot: new Date()
+    });
+  }else{  
   await ticket.update({
-    stepChatFlow: verifyStepCondition.nextStepId, //Vai ter que ser modificado
     botRetries: 0,
     lastInteractionBot: new Date()
   });
   const messageData = {
-    body: body,
+    body: 'PAS INVALIDO, digite novamente',
     fromMe: true,
     read: true,
     sendType: "bot"
@@ -265,10 +284,8 @@ const CreateMessagePas = async(body,verifyStepCondition,ticket:Ticket | any): Pr
     sendType: messageData.sendType,
     status: "pending"
   });
+  }
 }
-
-
-
 const VerifyStepsChatFlowTicket = async (
   msg: WbotMessage | any,
   ticket: Ticket | any
@@ -311,7 +328,7 @@ const VerifyStepsChatFlowTicket = async (
       // Adicionado para verificar o PAS e linkar com o banco ASTERISK
       var pasCondition;
       const verifyStepCondition = step.conditions.find((conditions: any) => {
-        if (conditions.type.includes('u')) {
+        if (conditions.type.includes('p')) {
           return true;
         } else {
           return undefined;
@@ -337,15 +354,10 @@ const VerifyStepsChatFlowTicket = async (
             ticket.channel
           )
         )
-          return;
-
-        
-        if(pasCondition){
-          CreateMessagePas(`MEU CONSAGRADO, VOCE E VALIDO, E SEU NOME E ${pasCondition.Nome}`,verifyStepCondition,ticket);
-        }else if(stepCondition === undefined){
-          CreateMessagePas(`MEU CONSAGRADO, VOCE NAO E VALIDO`,verifyStepCondition,ticket);
+          return;        
+        if(pasCondition || verifyStepCondition){
+          SendMessagePas(ticket,verifyStepCondition,pasCondition,chatFlow);
         }else{
-          
           // action = 0: enviar para proximo step: nextStepId
           await isNextSteps(ticket, chatFlow, step, stepCondition);
           // action = 1: enviar para fila: queue
