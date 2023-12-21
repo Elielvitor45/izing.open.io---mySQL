@@ -327,13 +327,17 @@ const VerifyStepsChatFlowTicket = async (
       // });
       // Adicionado para verificar o PAS e linkar com o banco ASTERISK
       var pasCondition;
-      const verifyStepCondition = step.conditions.find((conditions: any) => {
-        if (conditions.type.includes('p')) {
-          return true;
-        } else {
-          return undefined;
-        }
-      });
+      var verifyStepCondition;
+      if (!stepCondition) {
+        verifyStepCondition = step.conditions.find((conditions: any) => {
+          if (conditions.type.includes('p')) {
+            return true;
+          } else {
+            return undefined;
+          }
+        });
+      }
+
       if(verifyStepCondition) {
         pasCondition = await CheckCustomer(msg.body);
       }
@@ -387,7 +391,6 @@ const VerifyStepsChatFlowTicket = async (
           )
         )
           return;
-
         // se ticket tiver sido criado, ingnorar na primeria passagem
         if (!ticket.isCreated) {
           if (await isRetriesLimit(ticket, flowConfig)) return; 
