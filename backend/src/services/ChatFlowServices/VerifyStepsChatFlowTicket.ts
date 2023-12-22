@@ -18,7 +18,6 @@ import { and } from "sequelize";
 import { any, delay } from "bluebird";
 import { promises } from "fs";
 import CreateMessageCloseService from "../MessageServices/CreateMessageCloseService";
-import CreateMessageCloseChatFlowService from "./CreateMessageCloseChatFlow";
 import CreateMessageService from "../MessageServices/CreateMessageService";
 
 
@@ -83,6 +82,19 @@ const isQueueDefine = async (
         ticketId: ticket.id,
         type: "queue",
         queueId: stepCondition.queueId
+      });
+      const messageData = {
+        body:'Por favor, faça uma breve descrição do motivo do contato enquanto te redirecionamos para falar com um de nossos atendentes!',
+        fromMe: true,
+        read: true,
+        sendType: "bot"
+      };
+      await CreateMessageSystemService({
+        msg: messageData,
+        tenantId: ticket.tenantId,
+        ticket,
+        sendType: messageData.sendType,
+        status: "pending"
       });
     }
     if (flowConfig?.configurations?.autoDistributeTickets) {
