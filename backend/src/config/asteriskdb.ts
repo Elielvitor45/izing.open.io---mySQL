@@ -12,12 +12,12 @@ module.exports = {
   //   min: 5
   // },
   useUTC: true,
-  dialect: 'mysql',
+  dialect: process.env.ASTERISK_DIALECT || 'mysql',
   timezone: '-03:00',
-  host: '192.168.0.148',
-  port: '3306',
-  database: 'Playlist',
-  username: 'root',
-  password: 'root',
+  host: process.env.ASTERISK_HOST || '192.168.0.148',
+  port: process.env.ASTERISK_PORT || '3306',
+  database: process.env.ASTERISK_DB || 'Playlist',
+  username: process.env.ASTERISK_USER || 'root',
+  password: process.env.ASTERISK_PASSWORD || 'root',
   logging: false
 };

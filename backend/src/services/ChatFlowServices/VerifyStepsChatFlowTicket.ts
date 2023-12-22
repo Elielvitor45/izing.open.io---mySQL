@@ -15,8 +15,11 @@ import { request } from "http";
 import infoCliente from "../CheckAsteriskService/CheckPasService";
 import CheckCustomer from "../CheckAsteriskService/VerifyClient";
 import { and } from "sequelize";
-import { any } from "bluebird";
+import { any, delay } from "bluebird";
 import { promises } from "fs";
+import CreateMessageCloseService from "../MessageServices/CreateMessageCloseService";
+import CreateMessageCloseChatFlowService from "./CreateMessageCloseChatFlow";
+import CreateMessageService from "../MessageServices/CreateMessageService";
 
 
 const isNextSteps = async (
@@ -215,6 +218,22 @@ const isAnswerCloseTicket = async (
   );
 
   if (params) {
+    const messageData = {
+      body:'Estamos encerrando seu atendimento. Por favor, sinta-se a vontade para iniciar um novo atendimento!',
+      fromMe: true,
+      read: true,
+      sendType: "bot"
+    };
+    await CreateMessageSystemService({
+      msg: messageData,
+      tenantId: ticket.tenantId,
+      ticket,
+      sendType: messageData.sendType,
+      status: "pending"
+    });
+
+    await delay(2000);
+    
     await ticket.update({
       chatFlowId: null,
       stepChatFlow: null,
@@ -224,7 +243,8 @@ const isAnswerCloseTicket = async (
       answered: false,
       status: "closed"
     });
-
+    
+    
     await CreateLogTicketService({
       ticketId: ticket.id,
       type: "autoClose"
@@ -236,16 +256,11 @@ const isAnswerCloseTicket = async (
       payload: ticket
     });
 
+
     return true;
   }
   return false;
 };
-class Ab{
-  constructor(idPas){
-    this.idPas = idPas;
-  }
-  idPas:number;
-}
 
 const SendMessagePas = async(ticket,verifyStepCondition, pasCondition,chatFlow): Promise<void> => {
   if(pasCondition){
@@ -272,7 +287,7 @@ const SendMessagePas = async(ticket,verifyStepCondition, pasCondition,chatFlow):
     lastInteractionBot: new Date()
   });
   const messageData = {
-    body: 'PAS INVALIDO, digite novamente',
+    body: 'O “PAS” inserido é inválido. Por favor, digite o “PAS” novamente ou pressione 3 para finalizar o atendimento.',
     fromMe: true,
     read: true,
     sendType: "bot"
@@ -319,7 +334,10 @@ const VerifyStepsChatFlowTicket = async (
           String(c).toLowerCase().trim()
         );
         const message = String(msg.body).toLowerCase().trim();
-        return newConditions.includes(message);
+        
+        if(conditions.type !='p'){
+          return newConditions.includes(message);
+        }
       });
       // step.conditions = step.conditions.map(function(c){ - Parte utilizada apenas para testes.
       //   c.type = 'u';
