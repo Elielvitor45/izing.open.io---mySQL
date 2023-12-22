@@ -117,7 +117,7 @@
               </q-tooltip>
             </q-btn>
             <q-btn
-              @click="listarUsuarios"
+              @click="carregar"
               flat
               color="primary"
               class="bg-padrao btn-rounded"
@@ -177,7 +177,7 @@
               </q-fab-action>
 
               <q-fab-action
-                @click="listarUsuarios"
+                @click="carregar"
                 flat
                 color="primary"
                 class="bg-padrao q-pa-xs "
@@ -283,6 +283,19 @@
             label="Usuário destino"
           />
         </q-card-section>
+        <q-card-section>
+          <q-select
+            square
+            outlined
+            v-model="filaSelecionado"
+            :options="filas"
+            emit-value
+            map-options
+            option-value="id"
+            option-label="queue"
+            label="Fila destino"
+          />
+        </q-card-section>
         <q-card-actions align="right">
           <q-btn
             flat
@@ -308,13 +321,16 @@ const userId = +localStorage.getItem('userId')
 import { mapGetters } from 'vuex'
 import { ListarUsuarios } from 'src/service/user'
 import { AtualizarTicket } from 'src/service/tickets'
+import { ListarFilas } from 'src/service/filas'
 export default {
   name: 'InfoCabecalhoMensagens',
   data () {
     return {
       modalTransferirTicket: false,
       usuarioSelecionado: null,
-      usuarios: []
+      usuarios: [],
+      filaSelecionado: null,
+      filas: []
     }
   },
   computed: {
@@ -327,7 +343,14 @@ export default {
         user: { name: '' }
       }
       return Object.keys(this.ticketFocado).includes('contact') ? this.ticketFocado : infoDefault
-    }
+    } //,
+    // cqueue () {
+    //   const infoDefaultQueue = {
+    //     contact: { profilePicUrl: '', name: '' },
+    //     user: { name: '' }
+    //   }
+    //   return Object.keys(this.queueFocado).includes('queue') ? this.queueFocado : infoDefaultQueue
+    // }
   },
   methods: {
     Value (obj, prop) {
@@ -341,14 +364,35 @@ export default {
       try {
         const { data } = await ListarUsuarios()
         this.usuarios = data.users
-        this.modalTransferirTicket = true
       } catch (error) {
         console.error(error)
         this.$notificarErro('Problema ao carregar usuários', error)
       }
     },
+    async listarFilas () {
+      try {
+        const { data } = await ListarFilas()
+        this.filas = data
+      } catch (error) {
+        console.error(error)
+        this.$notificarErro('Problema ao carregar as filas', error)
+      }
+    },
+    async carregar () {
+      try {
+        Promise.all([
+          this.listarFilas(),
+          this.listarUsuarios()
+        ]
+        )
+        this.modalTransferirTicket = true
+      } catch (error) {
+        console.error(error)
+        this.$notificarErro('Problema ao carregar', error)
+      }
+    },
     async confirmarTransferenciaTicket () {
-      if (!this.usuarioSelecionado) return
+      if (!this.usuarioSelecionado && !this.filaSelecionado) return
       if (this.ticketFocado.userId === this.usuarioSelecionado) {
         this.$q.notify({
           type: 'info',
