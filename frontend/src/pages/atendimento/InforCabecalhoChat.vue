@@ -421,6 +421,7 @@ export default {
       }
       await AtualizarTicket(this.ticketFocado.id, {
         userId: this.usuarioSelecionado,
+        queueId: this.filaSelecionado,
         status: 'open',
         isTransference: 1
       })
