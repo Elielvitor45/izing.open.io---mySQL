@@ -84,7 +84,7 @@ const isQueueDefine = async (
         queueId: stepCondition.queueId
       });
       const messageData = {
-        body:'Por favor, faça uma breve descrição do motivo do contato enquanto te redirecionamos para falar com um de nossos atendentes!',
+        body:'Por favor, faça uma breve descrição do motivo do contato enquanto te redirecionamos para falar com um de nossos atendentes! 🇧🇷\n\nPor favor, proporcione una breve descripción del motivo del contacto mientras le redirigimos para que hable con uno de nuestros agentes!🇪🇸\n\nPlease provide a brief description of the reason for the contact while we redirect you to speak to one of our agents!🇺🇸',
         fromMe: true,
         read: true,
         sendType: "bot"
