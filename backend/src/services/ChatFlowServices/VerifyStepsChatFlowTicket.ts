@@ -342,6 +342,7 @@ const VerifyStepsChatFlowTicket = async (
 
       // verificar condição com a ação do step
       var stepCondition = step.conditions.find((conditions: any) => {
+        if (conditions.type === "US") return true;
         const newConditions = conditions.condition.map((c: any) =>
           String(c).toLowerCase().trim()
         );
