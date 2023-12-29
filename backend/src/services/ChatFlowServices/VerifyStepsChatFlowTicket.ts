@@ -19,6 +19,8 @@ import { any, delay } from "bluebird";
 import { promises } from "fs";
 import CreateMessageCloseService from "../MessageServices/CreateMessageCloseService";
 import CreateMessageService from "../MessageServices/CreateMessageService";
+import Queue from "../../models/Queue";
+
 
 
 const isNextSteps = async (
@@ -83,8 +85,9 @@ const isQueueDefine = async (
         type: "queue",
         queueId: stepCondition.queueId
       });
+      const queueN = await Queue.findByPk(stepCondition.queueId);
       const messageData = {
-        body:'Por favor, faça uma breve descrição do motivo do contato enquanto te redirecionamos para falar com um de nossos atendentes! 🇧🇷\n\nPor favor, proporcione una breve descripción del motivo del contacto mientras le redirigimos para que hable con uno de nuestros agentes!🇪🇸\n\nPlease provide a brief description of the reason for the contact while we redirect you to speak to one of our agents!🇺🇸',
+        body:`Você está sendo encaminhado(a) para a fila ${queueN?.queue}, aguarde alguns minutos até que um de nossos atendentes inicie o atendimento`,
         fromMe: true,
         read: true,
         sendType: "bot"
@@ -218,7 +221,6 @@ const isAnswerCloseTicket = async (
   ) {
     return false;
   }
-
   // verificar condição com a ação
   const params = flowConfig.configurations.answerCloseTicket.find(
     (condition: any) => {

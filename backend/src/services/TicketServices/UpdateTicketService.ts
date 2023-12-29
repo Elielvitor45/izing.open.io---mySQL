@@ -134,29 +134,46 @@ const UpdateTicketService = async ({
 
   if (isTransference) {
     // tranferiu o atendimento
-    await CreateLogTicketService({
-      userId: userIdRequest,
-      ticketId,
-      type: "transfered"
-    });
-    // recebeu o atendimento tansferido
-    if (userId) {
+    if (userId && !queueId) {
       await CreateLogTicketService({
-        userId,
+        userId: userIdRequest,
         ticketId,
-        type: "receivedTransfer"
+        type: "transfered"
       });
+      // recebeu o atendimento tansferido
+      if (userId) {
+        await CreateLogTicketService({
+          userId,
+          ticketId,
+          type: "receivedTransfer"
+        });
+      }
+    } else if (!userId && queueId) {
+      if (userId && !queueId) {
+        await CreateLogTicketService({
+          queueId: queueId,
+          ticketId,
+          type: "transfered"
+        });
+        // recebeu o atendimento tansferido
+        if (userId) {
+          await CreateLogTicketService({
+            queueId,
+            ticketId,
+            type: "receivedTransfer"
+          });
+        }
+      }
     }
   }
-
   await ticket.reload();
 
   if (isTransference) {
     await ticket.setDataValue("isTransference", true);
   }
-  
+
   //enviar mensagem de saudação ao iniciar o atendimento
-  if (statusData === "open") {
+  if (statusData === "open" && (queueId === null || undefined)) {
     if(whatsapp?.greetingMessage){
         await wbot.sendMessage(`${ticket.contact.number}@${ticket.isGroup ? "g" : "c"}.us`,
             generateMessage(`${whatsapp?.greetingMessage}`, ticket),
