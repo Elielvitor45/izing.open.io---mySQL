@@ -73,6 +73,18 @@
                   Abrir Fluxo
                 </q-tooltip>
               </q-btn>
+              <q-btn
+                color="blue-3"
+                icon="mdi-delete"
+                flat
+                round
+                class="bg-padrao"
+                @click="Deleted(props.row)"
+              >
+                <q-tooltip>
+                  Deletar Fluxo
+                </q-tooltip>
+              </q-btn>
             </q-td>
           </template>
 
@@ -84,6 +96,7 @@
       :chatFlowEdicao.sync="chatFlowSelecionado"
       @chatFlow:criada="novoFluxoCriado"
       @chatFlow:editado="fluxoEditado"
+      @chatFlow:listado="listarChatFlow"
     />
   </div>
 </template>
@@ -124,6 +137,9 @@ export default {
     }
   },
   methods: {
+    async Deleted (flow) {
+      await this.DeletarChatFlow(flow)
+    },
     async listarChatFlow () {
       const { data } = await ListarChatFlow()
       this.listachatFlow = data.chatFlow
@@ -135,6 +151,10 @@ export default {
     async listarUsuarios () {
       const { data } = await ListarUsuarios(this.params)
       this.usuarios = data.users
+    },
+    DeletarChatFlow (flow) {
+      this.chatFlowSelecionado = { ...flow, isBlocked: true }
+      this.modalChatFlow = true
     },
     novoFluxoCriado (flow) {
       const lista = [...this.listachatFlow]

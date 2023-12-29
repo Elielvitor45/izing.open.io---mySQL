@@ -52,7 +52,9 @@ class ChatFlow extends Model<ChatFlow> {
   @Default(true)
   @Column
   isActive: boolean;
-
+  @Default(false)
+  @Column
+  isBlocked: boolean;
   @Default(null)
   @Column(DataType.TEXT)
   celularTeste: string;

@@ -12,7 +12,7 @@ const ListChatFlowService = async ({
   tenantId
 }: Request): Promise<Response> => {
   const chatFlow = await ChatFlow.findAll({
-    where: { tenantId }
+    where: { tenantId, isBlocked: false }
   });
 
   return { chatFlow };

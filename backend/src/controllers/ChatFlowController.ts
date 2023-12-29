@@ -57,6 +57,7 @@ interface ChatFlowData {
   name: string;
   userId: number;
   isActive: boolean;
+  isBlocked: boolean;
   celularTeste?: string;
   tenantId: number | string;
 }
@@ -71,6 +72,7 @@ export const store = async (req: Request, res: Response): Promise<Response> => {
     flow: { ...req.body },
     name: req.body.name,
     isActive: true,
+    isBlocked: false,
     userId: +req.user.id,
     tenantId
   };
@@ -112,6 +114,7 @@ export const update = async (
     flow: { ...req.body },
     name: req.body.name,
     isActive: req.body.isReactive,
+    isBlocked: req.body.isBlocked,
     userId: +req.user.id,
     tenantId
   };

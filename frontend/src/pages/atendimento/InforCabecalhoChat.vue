@@ -303,6 +303,7 @@
             color="negative"
             v-close-popup
             class="q-mr-lg"
+            @click="limparCampos"
           />
           <q-btn
             flat
@@ -364,6 +365,7 @@ export default {
       try {
         const { data } = await ListarUsuarios()
         this.usuarios = data.users
+        console.log(this.usuarios)
       } catch (error) {
         console.error(error)
         this.$notificarErro('Problema ao carregar usuários', error)
@@ -391,12 +393,45 @@ export default {
         this.$notificarErro('Problema ao carregar', error)
       }
     },
+    async limparCampos () {
+      this.filaSelecionado = undefined
+      this.usuarioSelecionado = undefined
+    },
     async confirmarTransferenciaTicket () {
       if (!this.usuarioSelecionado && !this.filaSelecionado) return
-      if (this.ticketFocado.userId === this.usuarioSelecionado) {
+
+      if (this.filaSelecionado && this.usuarioSelecionado) {
         this.$q.notify({
           type: 'info',
-          message: 'Ticket já pertece ao usuário selecionado.',
+          message: 'Não é possivel transferir com os campos de usuario e fila selecionados',
+          progress: true,
+          actions: [{
+            icon: 'close',
+            round: true,
+            color: 'white'
+          }]
+        })
+        return
+      }
+      if (this.usuarioSelecionado != undefined) {
+        if (this.ticketFocado.userId === this.usuarioSelecionado) {
+          this.$q.notify({
+            type: 'info',
+            message: 'Ticket já pertece ao usuário selecionado.',
+            progress: true,
+            actions: [{
+              icon: 'close',
+              round: true,
+              color: 'white'
+            }]
+          })
+          return
+        }
+      }
+      if (this.ticketFocado.queueId === this.filaSelecionado) {
+        this.$q.notify({
+          type: 'info',
+          message: 'Ticket já pertece a fila selecionada.',
           progress: true,
           actions: [{
             icon: 'close',

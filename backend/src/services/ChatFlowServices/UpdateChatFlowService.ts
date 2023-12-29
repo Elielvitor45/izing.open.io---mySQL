@@ -65,6 +65,7 @@ const UpdateChatFlowService = async ({
     flow: flow.flow,
     userId,
     isActive: flow.isActive,
+    isBlocked: flow.isBlocked,
     celularTeste: flow.celularTeste
   });
 
