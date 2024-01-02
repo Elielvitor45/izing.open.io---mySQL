@@ -173,14 +173,21 @@ const UpdateTicketService = async ({
   }
 
   //enviar mensagem de saudação ao iniciar o atendimento
-  if (statusData === "open" && (queueId === null || undefined)) {
-    if(whatsapp?.greetingMessage){
+  if (statusData === "open") {
+    if (isTransference && userId) {
+      if (whatsapp?.greetingMessage) {
         await wbot.sendMessage(`${ticket.contact.number}@${ticket.isGroup ? "g" : "c"}.us`,
-            generateMessage(`${whatsapp?.greetingMessage}`, ticket),
-        )    
+          generateMessage(`${whatsapp?.greetingMessage}`, ticket),
+        )
+      }
+    } else if (!isTransference) {
+      if (whatsapp?.greetingMessage) {
+        await wbot.sendMessage(`${ticket.contact.number}@${ticket.isGroup ? "g" : "c"}.us`,
+          generateMessage(`${whatsapp?.greetingMessage}`, ticket),
+        )
+      }
     }
   }
-
   socketEmit({
     tenantId,
     type: "ticket:update",
