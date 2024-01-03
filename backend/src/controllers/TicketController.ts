@@ -149,7 +149,7 @@ export const update = async (
   const { isTransference } = req.body;
 
   const ticketData: TicketData = { ...req.body, tenantId };
-
+  
   const { ticket } = await UpdateTicketService({
     ticketData,
     ticketId,

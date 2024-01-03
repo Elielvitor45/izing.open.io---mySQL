@@ -9,6 +9,7 @@ import CreateLogTicketService from "./CreateLogTicketService";
 import GetTicketWbot from "../../helpers/GetTicketWbot";
 import { generateMessage } from "../../utils/mustache";
 import Whatsapp from "../../models/Whatsapp";
+import UsersQueues from "../../models/UsersQueues";
 
 interface TicketData {
   status?: string;
@@ -38,8 +39,15 @@ const UpdateTicketService = async ({
   isTransference,
   userIdRequest
 }: Request): Promise<Response> => {
-  const { status, userId, tenantId, queueId } = ticketData;
-
+  var { status, userId, tenantId, queueId } = ticketData;
+  if(userId && !queueId){
+    const queueID = await UsersQueues.findOne({
+      where: {
+        userId: userId
+      }
+    });
+    queueId = queueID?.queueId;
+  }
   const ticket = await Ticket.findOne({
     where: { id: ticketId, tenantId },
     include: [
@@ -149,21 +157,19 @@ const UpdateTicketService = async ({
         });
       }
     } else if (!userId && queueId) {
-      if (userId && !queueId) {
         await CreateLogTicketService({
           queueId: queueId,
           ticketId,
           type: "transfered"
         });
         // recebeu o atendimento tansferido
-        if (userId) {
+        if (queueId) {
           await CreateLogTicketService({
             queueId,
             ticketId,
             type: "receivedTransfer"
           });
         }
-      }
     }
   }
   await ticket.reload();
