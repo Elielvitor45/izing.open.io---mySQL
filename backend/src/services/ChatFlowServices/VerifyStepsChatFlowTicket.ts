@@ -14,12 +14,15 @@ import IsContactTest from "./IsContactTest";
 import { request } from "http";
 import infoCliente from "../CheckAsteriskService/CheckPasService";
 import CheckCustomer from "../CheckAsteriskService/VerifyClient";
-import { and } from "sequelize";
+import { QueryTypes, and } from "sequelize";
 import { any, delay } from "bluebird";
 import { promises } from "fs";
 import CreateMessageCloseService from "../MessageServices/CreateMessageCloseService";
 import CreateMessageService from "../MessageServices/CreateMessageService";
 import Queue from "../../models/Queue";
+import Message from "../../models/Message";
+import User from "../../models/User";
+import Contact from "../../models/Contact";
 
 
 
@@ -36,8 +39,6 @@ const isNextSteps = async (
         botRetries: 0,
         lastInteractionBot: new Date()
       });
-    
-
     const nodesList = [...chatFlow.flow.nodeList];
 
     /// pegar os dados do proxumo step
@@ -87,7 +88,7 @@ const isQueueDefine = async (
       });
       const queueN = await Queue.findByPk(stepCondition.queueId);
       const messageData = {
-        body:`Você está sendo encaminhado(a) para a fila ${queueN?.queue}, aguarde alguns minutos até que um de nossos atendentes inicie o atendimento`,
+        body:`Você está sendo direcionado(a) para a fila ${queueN?.queue}. Enquanto aguarda o atendimento, que deve iniciar em alguns minutos, por favor, descreva o motivo do seu contato. Isso nos ajudará a entender melhor suas necessidades e a fornecer um atendimento mais eficiente.`,
         fromMe: true,
         read: true,
         sendType: "bot"
@@ -166,7 +167,7 @@ const isRetriesLimit = async (
   if (
     flowConfig?.configurations?.maxRetryBotMessage &&
     maxRetryNumber &&
-    ticket.botRetries >= maxRetryNumber - 1
+    ticket.botRetries >= maxRetryNumber
   ) {
     const destinyType = flowConfig.configurations.maxRetryBotMessage.type;
     const { destiny } = flowConfig.configurations.maxRetryBotMessage;
@@ -180,6 +181,7 @@ const isRetriesLimit = async (
       ticketId: ticket.id,
       type: destinyType === 1 ? "retriesLimitQueue" : "retriesLimitUserDefine"
     };
+    const cliente = await Contact.findByPk(ticket.contactId);
     if (destinyType === 1) {
        if(destiny === ''){
          updatedValues.queueId = 1;
@@ -188,13 +190,43 @@ const isRetriesLimit = async (
         updatedValues.queueId = destiny;
         logsRetry.queueId = destiny;
       }
+      const queueN = await Queue.findByPk(destiny);
+      const messageData = {
+        body:
+          `${cliente?.pushname}, você não selecionou opções após ${flowConfig.configurations.maxRetryBotMessage.number} tentativas. Você será transferido para a fila ${queueN?.queue}. Aguarde alguns momentos para ser atendido por um de nossos atendentes. Obrigado pela compreensão.
+          `,
+        fromMe: true,
+        read: true,
+        sendType: "bot"
+      };
+      await CreateMessageSystemService({
+        msg: messageData,
+        tenantId: ticket.tenantId,
+        ticket,
+        sendType: messageData.sendType,
+        status: "pending"
+      });
     }
     // enviar para usuario
     if (destinyType === 2) {
       updatedValues.userId = destiny;
       logsRetry.userId = destiny;
+      const user = await User.findByPk(destiny);
+      const messageData = {
+        body:
+          `${cliente?.pushname}, você não selecionou opções após ${flowConfig.configurations.maxRetryBotMessage.number} tentativas. Você será transferido para o usuario(a) ${user?.name}. Aguarde alguns momentos ate ser atendido. Obrigado pela compreensão.`,
+        fromMe: true,
+        read: true,
+        sendType: "bot"
+      };
+      await CreateMessageSystemService({
+        msg: messageData,
+        tenantId: ticket.tenantId,
+        ticket,
+        sendType: messageData.sendType,
+        status: "pending"
+      });
     }
-
     ticket.update(updatedValues);
     await CreateLogTicketService(logsRetry);
     socketEmit({
@@ -238,6 +270,7 @@ const isAnswerCloseTicket = async (
       read: true,
       sendType: "bot"
     };
+    await delay(500);
     await CreateMessageSystemService({
       msg: messageData,
       tenantId: ticket.tenantId,
@@ -246,8 +279,8 @@ const isAnswerCloseTicket = async (
       status: "pending"
     });
 
-    await delay(2000);
-    
+    await delay(3000);
+
     await ticket.update({
       chatFlowId: null,
       stepChatFlow: null,
@@ -257,8 +290,7 @@ const isAnswerCloseTicket = async (
       answered: false,
       status: "closed"
     });
-    
-    
+
     await CreateLogTicketService({
       ticketId: ticket.id,
       type: "autoClose"
@@ -269,8 +301,6 @@ const isAnswerCloseTicket = async (
       type: "ticket:update",
       payload: ticket
     });
-
-
     return true;
   }
   return false;
@@ -284,24 +314,27 @@ const SendMessagePas = async(ticket,verifyStepCondition, pasCondition,chatFlow):
     );
     if(!nextStep) return;
     for (const interaction of nextStep.interactions) {
-      await BuildSendMessageService({
-        msg: interaction,
-        tenantId: ticket.tenantId,
-        ticket
-      });
+      if(interaction){
+        await BuildSendMessageService({
+          msg: interaction,
+          tenantId: ticket.tenantId,
+          ticket
+        });
+      }
     }
     await ticket.update({
-      stepChatFlow: verifyStepCondition.nextStepId, 
+      stepChatFlow: verifyStepCondition.nextStepId,
       botRetries: 0,
       lastInteractionBot: new Date()
     });
-  }else{  
+  }else{
   await ticket.update({
     botRetries: 0,
     lastInteractionBot: new Date()
   });
+  //Provavelmente terei que adicionar aqui
   const messageData = {
-    body: 'O “PAS” inserido é inválido. Por favor, digite o “PAS” novamente ou pressione 3 para finalizar o atendimento.',
+    body: 'O PAS inserido é inválido. Por favor, digite o codigo PAS novamente ou pressione 0 para finalizar o atendimento.',
     fromMe: true,
     read: true,
     sendType: "bot"
@@ -315,12 +348,14 @@ const SendMessagePas = async(ticket,verifyStepCondition, pasCondition,chatFlow):
   });
   }
 }
+
+
 const VerifyStepsChatFlowTicket = async (
   msg: WbotMessage | any,
   ticket: Ticket | any
 ): Promise<void> => {
-  
-  let celularTeste; // ticket.chatFlow?.celularTeste;
+
+  let celularTeste;
   if (
     ticket.chatFlowId &&
     ticket.status === "pending" &&
@@ -331,7 +366,7 @@ const VerifyStepsChatFlowTicket = async (
     if (ticket.chatFlowId) {
       const chatFlow = await ticket.getChatFlow();
       if (chatFlow.celularTeste) {
-        celularTeste = chatFlow.celularTeste.replace(/\s/g, ""); // retirar espaços
+        celularTeste = chatFlow.celularTeste.replace(/\s/g, "");
       }
 
       const step = chatFlow.flow.nodeList.find(
@@ -349,16 +384,11 @@ const VerifyStepsChatFlowTicket = async (
           String(c).toLowerCase().trim()
         );
         const message = String(msg.body).toLowerCase().trim();
-        
+
         if(conditions.type !='p'){
           return newConditions.includes(message);
         }
       });
-      // step.conditions = step.conditions.map(function(c){ - Parte utilizada apenas para testes.
-      //   c.type = 'u';
-      //   return c;
-      // });
-      // Adicionado para verificar o PAS e linkar com o banco ASTERISK
       var pasCondition;
       var verifyStepCondition;
       if (!stepCondition) {
@@ -370,38 +400,40 @@ const VerifyStepsChatFlowTicket = async (
           }
         });
       }
-
       if(verifyStepCondition) {
         pasCondition = await CheckCustomer(msg.body);
       }
-      
+
       if (
         !ticket.isCreated &&
         (await isAnswerCloseTicket(flowConfig, ticket, msg.body))
-      )
+      ){
         return;
-
+      }      
       if (stepCondition && !ticket.isCreated || verifyStepCondition && !ticket.isCreated) {
-        // await CreateAutoReplyLogsService(stepAutoReplyAtual, ticket, msg.body);
-        // Verificar se rotina em teste
         if (
           await IsContactTest(
             ticket.contact.number,
             celularTeste,
             ticket.channel
           )
-        )
-          return;        
+        ){
+          return;
+        }
         if(pasCondition || verifyStepCondition){
-          SendMessagePas(ticket,verifyStepCondition,pasCondition,chatFlow);
+          if(verifyStepCondition.queueId && pasCondition){
+            await isQueueDefine(ticket, flowConfig, step, verifyStepCondition);
+          }else{
+            await SendMessagePas(ticket,verifyStepCondition,pasCondition,chatFlow);
+          }
         }else{
           // action = 0: enviar para proximo step: nextStepId
           await isNextSteps(ticket, chatFlow, step, stepCondition);
           // action = 1: enviar para fila: queue
           await isQueueDefine(ticket, flowConfig, step, stepCondition);
-
         // action = 2: enviar para determinado usuário
           await isUserDefine(ticket, step, stepCondition);
+
         }
         socketEmit({
           tenantId: ticket.tenantId,
@@ -422,40 +454,52 @@ const VerifyStepsChatFlowTicket = async (
             celularTeste,
             ticket.channel
           )
-        )
+        ){
           return;
+        }
         // se ticket tiver sido criado, ingnorar na primeria passagem
         if (!ticket.isCreated) {
-          if (await isRetriesLimit(ticket, flowConfig)) return; 
+          if (await isRetriesLimit(ticket, flowConfig)){
+            return;}
           const messageData = {
             body:
-              flowConfig.configurations.notOptionsSelectMessage.message,
+              flowConfig.configurations.notOptionsSelectMessage.message+` | ${ticket.botRetries + 1} de ${flowConfig.configurations.maxRetryBotMessage.number}`,
             fromMe: true,
             read: true,
             sendType: "bot"
           };
-        if(messageData.body != ''){
+        if(messageData.body !=''){
             await CreateMessageSystemService({
               msg: messageData,
               tenantId: ticket.tenantId,
               ticket,
               sendType: messageData.sendType,
               status: "pending"
-            });  
-
+            });
+            await delay(2000);
             await ticket.update({
               botRetries: ticket.botRetries + 1,
               lastInteractionBot: new Date()
             });
+            
+            for (const interaction of step.interactions) {
+              await BuildSendMessageService({
+               msg: interaction,
+               tenantId: ticket.tenantId,
+               ticket,
+             });
+            }  
+            return;
           }
-          
-        }
-        for (const interaction of step.interactions) {
-           await BuildSendMessageService({
-            msg: interaction,
-            tenantId: ticket.tenantId,
-            ticket,
-          });
+        }else{
+          for (const interaction of step.interactions) {
+            await BuildSendMessageService({
+             msg: interaction,
+             tenantId: ticket.tenantId,
+             ticket,
+           });
+         }
+          return;
         }
       }
       // await SetTicketMessagesAsRead(ticket);

@@ -162,12 +162,10 @@ export default {
       if (this.chatFlow.id && this.chatFlow?.isBlocked === true) {
         await UpdateChatFlow(this.chatFlow)
         const { data } = await ListarChatFlow()
-        console.log('adentrou')
         this.$notificarSucesso('Fluxo Deletado.')
         this.$emit('chatFlow:listado', data)
-      }else if (this.chatFlow.id && !this.chatFlow?.isDuplicate && this.chatFlow?.isBlocked === false) {
+      } else if (this.chatFlow.id && !this.chatFlow?.isDuplicate && this.chatFlow?.isBlocked === false) {
         const { data } = await UpdateChatFlow(this.chatFlow)
-        console.log(adentrou2)
         this.$notificarSucesso('Fluxo editado.')
         this.$emit('chatFlow:editado', data)
       } else {

@@ -69,7 +69,6 @@ const BuildSendMessageService = async ({
   const chatflw: any = await ChatFlow.sequelize?.query(query, {
     type: QueryTypes.SELECT
   });
-  console.log(chatflw[0].isActive);
    if(chatflw[0].isActive === 1){
     const messageData: MessageData = {
       ticketId: ticket.id,

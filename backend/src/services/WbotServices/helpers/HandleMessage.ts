@@ -17,12 +17,25 @@ import VerifyStepsChatFlowTicket from "../../ChatFlowServices/VerifyStepsChatFlo
 import Queue from "../../../libs/Queue";
 // import isMessageExistsService from "../../MessageServices/isMessageExistsService";
 import Setting from "../../../models/Setting";
-import Timer from "../LimitTimeService";
+import TimerCloseTicket from "../LimitTimeService";
+import { delay } from "bluebird";
+
 var compareActivation = false;
 interface Session extends Client {
   id: number;
 }
-
+let dictionary = new Map<number, boolean>();
+const DictionaryVerifyandCreate = async (ticketId:number):Promise<boolean|void> => {
+  if(!dictionary.has(ticketId)){
+    dictionary.set(ticketId,true);
+    return false;
+  }else{
+    return true;
+  }
+}
+const DictionaryUpdate = async (ticketId:number,value:boolean):Promise<void> => {
+  dictionary.delete(ticketId);
+}
 const HandleMessage = async (
   msg: WbotMessage,
   wbot: Session
@@ -97,9 +110,17 @@ const HandleMessage = async (
           msg,
           channel: "whatsapp"
         });
+        await delay(1000);
+        const verifyDictionary = await DictionaryVerifyandCreate(ticket.id);
+        if(verifyDictionary){
+          console.log(dictionary,ticket.id)
+          return;
+        }
 
         if (ticket?.isCampaignMessage) {
           resolve();
+          await delay(1000);
+          DictionaryUpdate(ticket.id,false);
           return;
         }
         if (msg.hasMedia) {
@@ -111,7 +132,7 @@ const HandleMessage = async (
         try {
           if (compareActivation === false) {
             compareActivation = true;
-            setInterval(Timer,300000);
+            setInterval(TimerCloseTicket,300000);
           }
         } catch (error) {
           compareActivation = false;
@@ -146,8 +167,8 @@ const HandleMessage = async (
             payload
           });
         }
-
-        
+        await delay(1000);
+        DictionaryUpdate(ticket.id,false);
         resolve();
       } catch (err) {
         logger.error(err);

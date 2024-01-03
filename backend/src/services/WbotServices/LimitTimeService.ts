@@ -1,6 +1,5 @@
 import { QueryTypes } from "sequelize";
 import Ticket from "../../models/Ticket";
-import { number } from "yup";
 interface Time {
     id: number,
     Time: string
@@ -30,23 +29,25 @@ const compareTimes = async (data: string): Promise<boolean> => {
     if (dateLastinteractionMiliseconds >= dateNowmiliseconds) return false;
     return true;
 }
-const Timer = async (): Promise<any> => {
+const TimerCloseTicket = async (): Promise<any> => {
     const data: Time[] | undefined = await Ticket.sequelize?.query(query, {
         type: QueryTypes.SELECT
     })
     if (data) {
         data.forEach(async (item) => {
-            const bool = await compareTimes(item.Time)
-            if(!bool){
-                const query1 = queryS.replace(`ticketid`,`${item.id}`);
-                await Ticket.sequelize?.query(query1, {
-                    type: QueryTypes.UPDATE
-                })
-            }else{}
+            if(item){
+                const bool = await compareTimes(item.Time)
+                if(!bool){
+                    const query1 = queryS.replace(`ticketid`,`${item.id}`);
+                    await Ticket.sequelize?.query(query1, {
+                        type: QueryTypes.UPDATE
+                    })
+                }else{}
+            }
         })
     }
 }
-export default Timer;
+export default TimerCloseTicket;
 
 
 

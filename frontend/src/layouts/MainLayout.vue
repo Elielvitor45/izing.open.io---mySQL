@@ -13,26 +13,17 @@
           icon="menu">
           <q-tooltip>Menu</q-tooltip>
         </q-btn>
-
-        <q-btn flat
+        <a href="#/home"> <q-btn flat
           no-caps
           no-wrap
           dense
           class="q-ml-sm"
           v-if="$q.screen.gt.xs">
-          <q-img src="/1631350163720.jpg"
+          <q-img src="/izing-logo_5_mini_transparent.png"
             spinner-color="primary"
             style="height: 50px; width: 120px" />
-          <!-- <q-toolbar-title
-            shrink
-            class="text-bold text-grey-7"
-          >
-            IZING
-          </q-toolbar-title> -->
-        </q-btn>
-
+        </q-btn></a>
         <q-space />
-
         <div class="q-gutter-sm row items-center no-wrap">
           <q-btn round
             dense

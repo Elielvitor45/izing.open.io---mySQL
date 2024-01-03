@@ -90,7 +90,6 @@
             id="imagemfield"
             style="cursor: pointer; "
           />
-
         </div>
         <VueEasyLightbox
           v-if="cMediaUrl && $attrs.element.data.type.indexOf('image') != -1"
