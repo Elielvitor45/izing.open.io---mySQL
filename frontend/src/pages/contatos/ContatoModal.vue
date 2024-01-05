@@ -32,11 +32,11 @@
           v-model="contato.number"
           :validator="$v.contato.number"
           @blur="$v.contato.number.$touch"
-          mask="(##) ##### - ####"
+          mask="(##) ########"
           placeholder="(DDD) 99999 - 9999"
           fill-mask
           unmasked-value
-          hint="Número do celular deverá conter 9 dígitos e ser precedido do DDD. "
+          hint="Número do contato deverá conter 8 dígitos e ser precedido do DDD. "
           label="Número"
         />
         <c-input
