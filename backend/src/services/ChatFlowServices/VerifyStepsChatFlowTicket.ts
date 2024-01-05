@@ -23,6 +23,7 @@ import Queue from "../../models/Queue";
 import Message from "../../models/Message";
 import User from "../../models/User";
 import Contact from "../../models/Contact";
+import UpdateTicketPasService from "../TicketServices/UpdateTicketPasService";
 import { setOptions } from "sequelize-typescript";
 
 
@@ -459,6 +460,15 @@ const VerifyStepsChatFlowTicket = async (
             return undefined;
           }
         });
+      }
+      if(verifyStepCondition) {
+        pasCondition = await CheckCustomer(msg.body);
+      }
+      if (pasCondition){
+        const ticketId = ticket.id
+        const codigoPas = pasCondition.idPas
+        const t = {ticketId, codigoPas}
+        await UpdateTicketPasService({ticketId, codigoPas})
       }
       const contact = await Contact.findOne({
         where:{id: ticket?.contactId}

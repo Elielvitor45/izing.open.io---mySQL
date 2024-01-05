@@ -10,6 +10,7 @@ import {
   HasMany,
   AutoIncrement,
   Default,
+  Unique,
   // AfterCreate,
   DataType,
   AllowNull
@@ -157,6 +158,11 @@ class Ticket extends Model<Ticket> {
 
   @HasMany(() => MessagesOffLine)
   messagesOffLine: MessagesOffLine[];
+
+  @Default(null)
+  @AllowNull
+  @Column(DataType.INTEGER)
+  codigoPas: number;
 
   @Default(null)
   @AllowNull
