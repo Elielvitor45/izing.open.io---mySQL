@@ -113,7 +113,6 @@ const HandleMessage = async (
         await delay(1000);
         const verifyDictionary = await DictionaryVerifyandCreate(ticket.id);
         if(verifyDictionary){
-          console.log(dictionary,ticket.id)
           return;
         }
 

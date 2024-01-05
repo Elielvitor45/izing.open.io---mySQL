@@ -127,7 +127,12 @@ class Contact extends Model<Contact> {
     );
     instance.profilePicUrl = profilePicUrl;
   }
+
+  @Column
+  Blocked: boolean;
+
 }
+
 
 // Contact.sequelize?.define("Contact", {
 //   scheduledMessages: {

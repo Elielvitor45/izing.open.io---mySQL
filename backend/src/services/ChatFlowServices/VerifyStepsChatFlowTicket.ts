@@ -23,6 +23,8 @@ import Queue from "../../models/Queue";
 import Message from "../../models/Message";
 import User from "../../models/User";
 import Contact from "../../models/Contact";
+import { setOptions } from "sequelize-typescript";
+
 
 
 
@@ -30,10 +32,11 @@ const isNextSteps = async (
   ticket: Ticket,
   chatFlow: any,
   step: any,
-  stepCondition: any
+  stepCondition: any,
+  blocked: boolean|undefined
 ): Promise<void> => {
   // action = 0: enviar para proximo step: nextStepId
-  if (stepCondition.action === 0) {
+  if (stepCondition.action === 0 || (blocked && stepCondition.action === undefined)) {
       await ticket.update({
         stepChatFlow: stepCondition.nextStepId,
         botRetries: 0,
@@ -42,9 +45,56 @@ const isNextSteps = async (
     const nodesList = [...chatFlow.flow.nodeList];
 
     /// pegar os dados do proxumo step
+    console.log(stepCondition)
     const nextStep = nodesList.find(
       (n: any) => n.id === stepCondition.nextStepId
     );
+
+    var verifyNextStepCondition;
+    var verifyStepCondition;
+    if(nextStep && step){
+      verifyNextStepCondition = nextStep.conditions.filter(condition => condition.type === 'p').length > 0;
+      verifyStepCondition = step.conditions.filter(condition => condition.type === 'p').length > 0;
+    }
+    if(verifyNextStepCondition || verifyStepCondition){
+      if(blocked){
+        const messageData = {
+          body:'Você não pode acessar o setor do suporte, pois anteriormente houve mais que 3 tentativas de digitar o codigo PAS, estamos encerrando seu ticket, caso queira ter acesso novamente, ligue para o suporte diretamente e informe um codigo PAS valido, ou entre em contato com o setor de vendas.',
+          fromMe: true,
+          read: true,
+          sendType: "bot"
+        };
+        await CreateMessageSystemService({
+          msg: messageData,
+          tenantId: ticket.tenantId,
+          ticket,
+          sendType: messageData.sendType,
+          status: "pending"
+        });
+        await delay(1000);
+        await CreateLogTicketService({
+          ticketId: ticket.id,
+          type: "autoClose"
+        });
+
+        await delay(3500);
+
+        await ticket.update({
+          chatFlowId: null,
+          botRetries: 0,
+          lastInteractionBot: new Date(),
+          unreadMessages: 0,
+          answered: false,
+          status: "closed"
+        });
+        socketEmit({
+          tenantId: ticket.tenantId,
+          type: "ticket:update",
+          payload: ticket
+        });
+        return;
+      }
+    }
 
     if (!nextStep) return;
 
@@ -245,9 +295,9 @@ const isRetriesLimit = async (
 const isAnswerCloseTicket = async (
   flowConfig: any,
   ticket: Ticket,
-  message: string
+  message: string,
 ): Promise<boolean> => {
-  if (
+    if (
     !flowConfig?.configurations?.answerCloseTicket ||
     flowConfig?.configurations?.answerCloseTicket?.length < 1
   ) {
@@ -306,8 +356,8 @@ const isAnswerCloseTicket = async (
   return false;
 };
 
-const SendMessagePas = async(ticket,verifyStepCondition, pasCondition,chatFlow): Promise<void> => {
-  if(pasCondition){
+const SendMessagePas = async(ticket,verifyStepCondition, pasCondition,chatFlow, contact): Promise<boolean|void> => {
+  if(pasCondition && !contact.blocked){
     const nodesList = [...chatFlow.flow.nodeList];
     const nextStep = nodesList.find(
       (n: any) => n.id === verifyStepCondition.nextStepId
@@ -329,12 +379,24 @@ const SendMessagePas = async(ticket,verifyStepCondition, pasCondition,chatFlow):
     });
   }else{
   await ticket.update({
-    botRetries: 0,
+    botRetries: ticket.botRetries + 1,
     lastInteractionBot: new Date()
   });
+
+  if(ticket.botRetries > 3){  
+    await ticket.update({
+      botRetries: 0,
+      lastInteractionBot: new Date(),
+    });
+    await contact.update({
+      Blocked: true
+    });
+    await delay(1000);
+    return true;
+  }
   //Provavelmente terei que adicionar aqui
   const messageData = {
-    body: 'O PAS inserido é inválido. Por favor, digite o codigo PAS novamente ou pressione 0 para finalizar o atendimento.',
+    body: `O PAS inserido é inválido. Por favor, digite o codigo PAS novamente ou pressione 0 para finalizar o atendimento.| Tentativas ${ticket.botRetries} de 3`,
     fromMe: true,
     read: true,
     sendType: "bot"
@@ -348,8 +410,6 @@ const SendMessagePas = async(ticket,verifyStepCondition, pasCondition,chatFlow):
   });
   }
 }
-
-
 const VerifyStepsChatFlowTicket = async (
   msg: WbotMessage | any,
   ticket: Ticket | any
@@ -400,10 +460,17 @@ const VerifyStepsChatFlowTicket = async (
           }
         });
       }
-      if(verifyStepCondition) {
-        pasCondition = await CheckCustomer(msg.body);
-      }
+      const contact = await Contact.findOne({
+        where:{id: ticket?.contactId}
+      });
 
+      if(verifyStepCondition) {
+        if(contact?.Blocked){
+          await isNextSteps(ticket, chatFlow, step, verifyStepCondition,contact?.Blocked);
+        }else{
+          pasCondition = await CheckCustomer(msg.body);
+        }
+      }
       if (
         !ticket.isCreated &&
         (await isAnswerCloseTicket(flowConfig, ticket, msg.body))
@@ -424,11 +491,46 @@ const VerifyStepsChatFlowTicket = async (
           if(verifyStepCondition.queueId && pasCondition){
             await isQueueDefine(ticket, flowConfig, step, verifyStepCondition);
           }else{
-            await SendMessagePas(ticket,verifyStepCondition,pasCondition,chatFlow);
+            const verifyBlocked = await SendMessagePas(ticket,verifyStepCondition,pasCondition,chatFlow,contact);
+            console.log(verifyBlocked)
+            if(verifyBlocked){
+                const messageData = {
+                  body:'Você não pode acessar o setor do suporte, pois houve mais que 3 tentativas de digitar o codigo PAS, estamos encerrando seu ticket, caso queira ter acesso novamente, ligue para o suporte diretamente e informe um codigo PAS valido, ou entre em contato com o setor de vendas.',
+                  fromMe: true,
+                  read: true,
+                  sendType: "bot"
+                };
+                await CreateMessageSystemService({
+                  msg: messageData,
+                  tenantId: ticket.tenantId,
+                  ticket,
+                  sendType: messageData.sendType,
+                  status: "pending"
+                });
+                await delay(1000);
+                await CreateLogTicketService({
+                  ticketId: ticket.id,
+                  type: "autoClose"
+                });
+                await delay(3500);
+                await ticket.update({
+                  chatFlowId: null,
+                  botRetries: 0,
+                  lastInteractionBot: new Date(),
+                  unreadMessages: 0,
+                  answered: false,
+                  status: "closed"
+                });
+                socketEmit({
+                  tenantId: ticket.tenantId,
+                  type: "ticket:update",
+                  payload: ticket
+                });
+              }
           }
         }else{
           // action = 0: enviar para proximo step: nextStepId
-          await isNextSteps(ticket, chatFlow, step, stepCondition);
+          await isNextSteps(ticket, chatFlow, step, stepCondition,contact?.Blocked);
           // action = 1: enviar para fila: queue
           await isQueueDefine(ticket, flowConfig, step, stepCondition);
         // action = 2: enviar para determinado usuário

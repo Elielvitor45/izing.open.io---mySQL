@@ -88,13 +88,11 @@ const UpdateTicketService = async ({
 
   // verificar se o front envia close e substituir por closed
   const statusData = status === "close" ? "closed" : status;
-
   const data: any = {
     status: statusData,
     queueId,
     userId
   };
-
   const whatsapp = await Whatsapp.findOne({
     where: { id: ticket.whatsappId, tenantId }
   });
