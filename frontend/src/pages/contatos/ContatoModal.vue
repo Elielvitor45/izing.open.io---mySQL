@@ -1,5 +1,6 @@
 <template>
   <q-dialog
+    persistent
     @show="fetchContact"
     @hide="$emit('update:modalContato', false)"
     :value="modalContato"
@@ -50,43 +51,15 @@
       <q-card-section class="q-pa-sm q-pl-md text-bold">
         Informações adicionais
       </q-card-section>
-      <q-card-section class="q-pa-sm q-pl-md row q-col-gutter-md justify-center">
+      <q-card-section class="q-pa-sm q-pl-md text-bold">
         <div v-for="(extraInfo, index) in contato.extraInfo" :key="index">
-          <div
-            class="col-12 row justify-center q-col-gutter-sm"
-          >
-            <q-input
-              class="col-6"
-              outlined
-              v-model="extraInfo.name"
-              label="Descrição"
-            />
-            <q-input
-              class="col-5"
-              outlined
-              label="Informação"
-              v-model="extraInfo.value"
-            />
-            <div class="col q-pt-md">
-              <q-btn
-                :key="index"
-                icon="delete"
-                round
-                flat
-                color="negative"
-                @click="removeExtraInfo(index)"
-              />
-            </div>
-          </div>
-        </div>
-        <div class="col-6">
-          <q-btn
-            class="full-width"
-            color="primary"
-            outline
-            label="Adicionar Informação"
-            @click="contato.extraInfo.push({name: null, value: null})"
-          />
+          <q-input
+          class="col-6"
+          outlined
+          v-model="extraInfo.value"
+          label="Descrição"
+          type="textarea"
+        />
         </div>
       </q-card-section>
       <q-card-actions
@@ -99,6 +72,7 @@
           color="negative"
           v-close-popup
           class="q-px-md "
+          @click="removeContact"
         />
         <q-btn
           class="q-ml-lg q-px-md"
@@ -112,7 +86,6 @@
     </q-card>
   </q-dialog>
 </template>
-
 <script>
 import { required, email, minLength, maxLength } from 'vuelidate/lib/validators'
 import { ObterContato, CriarContato, EditarContato } from 'src/service/contatos'
@@ -134,7 +107,10 @@ export default {
         name: null,
         number: null,
         email: '',
-        extraInfo: []
+        extraInfo: [{
+          name: '',
+          value: ''
+        }]
       },
       disableButton: false
     }
@@ -155,6 +131,9 @@ export default {
         if (data.number.substring(0, 2) === '55') {
           this.contato.number = data.number.substring(2)
         }
+        if (!data.extraInfo.length > 0) {
+          this.contato.extraInfo.push({ name: '', value: ' ' })
+        }
       } catch (error) {
         console.error(error)
         this.$notificarErro('Ocorreu um erro!', error)
@@ -164,6 +143,17 @@ export default {
       const newData = { ...this.contato }
       newData.extraInfo.splice(index, 1)
       this.contato = { ...newData }
+    },
+    async removeContact () {
+      this.contato = {
+        name: null,
+        namber: null,
+        email: '',
+        extraInfo: [{
+          name: null,
+          value: null
+        }]
+      }
     },
     async saveContact () {
       this.$v.contato.$touch()
@@ -181,9 +171,12 @@ export default {
         })
       }
 
-      const contato = {
+      var contato = {
         ...this.contato,
         number: '55' + this.contato.number // inserir o DDI do brasil para consultar o número
+      }
+      if (this.contato.extraInfo.name === null) {
+        this.contato.extraInfo.name = ''
       }
       try {
         this.disableButton = true
