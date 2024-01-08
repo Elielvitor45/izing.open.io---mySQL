@@ -171,9 +171,12 @@ export default {
         })
       }
 
-      const contato = {
+      var contato = {
         ...this.contato,
         number: '55' + this.contato.number // inserir o DDI do brasil para consultar o número
+      }
+      if (this.contato.extraInfo.name === null) {
+        this.contato.extraInfo.name = ''
       }
       try {
         this.disableButton = true

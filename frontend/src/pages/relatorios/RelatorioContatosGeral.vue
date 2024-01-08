@@ -64,7 +64,7 @@
                   v-for="col in bl_sintetico ? columns.filter(c => c.name == opcoesRelatorio.agrupamento) : columns"
                   :key="col.name"
                 >
-                  {{ col.label }}
+                  {{ col.label}}
                 </td>
               </tr>
             </thead>
@@ -194,26 +194,63 @@ export default {
           return a
         }, {})
     },
-    printReport (idElemento) {
-      this.imprimir = !this.imprimir
+    async printReport (idElemento) {
+      if (this.contatos.length > 0) {
+        this.imprimir = !this.imprimir
+      } else {
+        return this.$q.notify({
+          type: 'warning',
+          progress: true,
+          position: 'top',
+          message: 'Relatorio Vazio!',
+          actions: [{
+            icon: 'close',
+            round: true,
+            color: 'white'
+          }]
+        })
+      }
     },
     exportTable () {
       const json = XLSX.utils.table_to_sheet(
         document.getElementById('tableRelatorioContatos'),
         { raw: true }
       )
+      var isEmpty = 0
       for (const col in json) {
+        if (col === 'A2') {
+          isEmpty = 1
+        }
         if (col[0] == 'J') {
           json[col].t = 'n'
           json[col].v = json[col].v.replace(/\./g, '').replace(',', '.')
-          // json[col].f = `VALUE(${json[col].v})`
         }
       }
       const wb = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb, json, 'Relatório Atendimentos')
-      XLSX.writeFile(wb, 'Atendimentos-TESTE.xlsx')
+      if (isEmpty === 1) {
+        XLSX.writeFile(wb, 'Atendimentos-TESTE.xlsx')
+      } else {
+        return this.$q.notify({
+          type: 'warning',
+          progress: true,
+          position: 'top',
+          message: 'Relatorio vazio, não é possivel gerar o arquivo',
+          actions: [{
+            icon: 'close',
+            round: true,
+            color: 'white'
+          }]
+        })
+      }
+    },
+    async dataVerify () {
+      if (this.pesquisa.startDate > this.pesquisa.endDate) {
+        this.pesquisa.endDate = this.pesquisa.startDate
+      }
     },
     async gerarRelatorio () {
+      this.dataVerify()
       const { data } = await RelatorioContatos(this.pesquisa)
       this.contatos = data.contacts
     }
