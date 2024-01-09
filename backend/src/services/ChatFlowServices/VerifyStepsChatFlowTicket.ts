@@ -16,15 +16,12 @@ import infoCliente from "../CheckAsteriskService/CheckPasService";
 import CheckCustomer from "../CheckAsteriskService/VerifyClient";
 import { QueryTypes, and } from "sequelize";
 import { any, delay } from "bluebird";
-import { promises } from "fs";
-import CreateMessageCloseService from "../MessageServices/CreateMessageCloseService";
-import CreateMessageService from "../MessageServices/CreateMessageService";
 import Queue from "../../models/Queue";
-import Message from "../../models/Message";
 import User from "../../models/User";
 import Contact from "../../models/Contact";
 import UpdateTicketPasService from "../TicketServices/UpdateTicketPasService";
-import { setOptions } from "sequelize-typescript";
+import AsteriskInsertAtendimento from "./AsteriskInsertAtendimento";
+
 
 
 
@@ -46,7 +43,6 @@ const isNextSteps = async (
     const nodesList = [...chatFlow.flow.nodeList];
 
     /// pegar os dados do proxumo step
-    console.log(stepCondition)
     const nextStep = nodesList.find(
       (n: any) => n.id === stepCondition.nextStepId
     );
@@ -469,6 +465,7 @@ const VerifyStepsChatFlowTicket = async (
         const codigoPas = pasCondition.idPas
         const t = {ticketId, codigoPas}
         await UpdateTicketPasService({ticketId, codigoPas})
+        await AsteriskInsertAtendimento(pasCondition.idPas,ticket.contact.number);
       }
       const contact = await Contact.findOne({
         where:{id: ticket?.contactId}

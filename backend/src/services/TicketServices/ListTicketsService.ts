@@ -48,7 +48,7 @@ const ListTicketsService = async ({
   // check is admin
   const Pas = pas;
   if (Pas) {
-    const query = `SELECT DISTINCT t.id, c.name, c.number, t.codigoPas, DATE_FORMAT(t.createdAt,'%d-%m-%Y') AS created
+    const query = `SELECT DISTINCT t.id, c.name, c.number, t.codigoPas, DATE_FORMAT(t.createdAt,'%d-%m-%Y %H:%i') AS created
     FROM Tickets t
     INNER JOIN Contacts c ON c.id = t.contactId
     WHERE t.codigoPas AND t.createdAt BETWEEN DATE_FORMAT(:startDate, '%Y-%m-%d %00:%00:%00') AND DATE_FORMAT(:endDate, '%Y-%m-%d %23:%59:%59')

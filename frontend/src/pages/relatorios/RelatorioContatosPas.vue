@@ -140,10 +140,10 @@ export default {
       bl_sintetico: false,
       contatos: [],
       columns: [
-        { name: 'id', label: 'TicketId', field: 'id', style: 'width: 500px', align: 'left' },
-        { name: 'name', label: 'Nome', field: 'name', align: 'left', style: 'width: 300px', format: v => this.replaceEmojis(v) },
+        { name: 'id', label: 'Codigo do Ticket', field: 'id', style: 'width: 500px', align: 'left' },
+        { name: 'name', label: 'Nome do Contato', field: 'name', align: 'left', style: 'width: 300px', format: v => this.replaceEmojis(v) },
         { name: 'number', label: 'WhatsApp', field: 'number', align: 'center', style: 'width: 300px' },
-        { name: 'codigoPas', label: 'Pas', field: 'codigoPas', style: 'width: 500px', align: 'left' },
+        { name: 'codigoPas', label: 'Codigo do Pas', field: 'codigoPas', style: 'width: 500px', align: 'left' },
         { name: 'created', label: 'Data', field: 'created', style: 'width: 500px', align: 'left' }
       ],
       pesquisa: {

@@ -28,6 +28,7 @@ import ChatFlow from "../models/ChatFlow";
 import * as QueueJobs from "../libs/Queue";
 import { logger } from "../utils/logger";
 import Clientes from "../asteriskmodels/Clientes";
+import Atendimentos from "../asteriskmodels/Atendimentos";
 interface CustomSequelize extends Sequelize {
   afterConnect?: any;
   afterDisconnect?: any;
@@ -89,7 +90,8 @@ interface CustomSequelize extends Sequelize {
 const dbConfig2 = require("../config/asteriskdb");
 const asterisksquelize: CustomSequelize = new Sequelize(dbConfig2);
 const models2 = [
-  Clientes
+  Clientes,
+  Atendimentos
 ];
 
 asterisksquelize.addModels(models2);
