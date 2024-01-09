@@ -14,6 +14,7 @@ import ShowLogTicketService from "../services/TicketServices/ShowLogTicketServic
 import ShowTicketService from "../services/TicketServices/ShowTicketService";
 import UpdateTicketService from "../services/TicketServices/UpdateTicketService";
 import SendWhatsAppMessage from "../services/WbotServices/SendWhatsAppMessage";
+import { ParsedUrlQueryInput } from "querystring";
 
 type IndexQuery = {
   searchParam: string;
@@ -27,6 +28,12 @@ type IndexQuery = {
   includeNotQueueDefined: string;
 };
 
+type Pas = {
+  pas: boolean|undefined;
+  startDate: string;
+  endDate: string;
+};
+
 interface TicketData {
   contactId: number;
   status: string;
@@ -37,6 +44,7 @@ interface TicketData {
 }
 
 export const index = async (req: Request, res: Response): Promise<Response> => {
+  
   const { tenantId, profile } = req.user;
   const {
     searchParam,
@@ -47,9 +55,16 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
     withUnreadMessages,
     queuesIds,
     isNotAssignedUser,
-    includeNotQueueDefined
+    includeNotQueueDefined,
   } = req.query as IndexQuery;
 
+  var pas:boolean|undefined;
+  var startDate:string|undefined;
+  var endDate:string|undefined;
+  if(req.query && req.query.pas){
+    ({ pas, startDate, endDate } = req.query as Pas)
+  }
+  
   const userId = req.user.id;
 
   const { tickets, count, hasMore } = await ListTicketsService({
@@ -64,7 +79,10 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
     isNotAssignedUser,
     includeNotQueueDefined,
     tenantId,
-    profile
+    profile,
+    pas,
+    startDate,
+    endDate
   });
 
   return res.status(200).json({ tickets, count, hasMore });
@@ -93,6 +111,16 @@ export const store = async (req: Request, res: Response): Promise<Response> => {
 
   return res.status(200).json(ticket);
 };
+
+export const showPas = async (req: Request, res: Response): Promise<Response> => {
+  const { startDate } = req.params;
+  const { endDate } = req.params;
+  const { tenantId } = req.user;
+  console.log('observando')
+  const ab = 1;
+  return res.status(200).json(ab);
+
+}
 
 export const show = async (req: Request, res: Response): Promise<Response> => {
   const { ticketId } = req.params;

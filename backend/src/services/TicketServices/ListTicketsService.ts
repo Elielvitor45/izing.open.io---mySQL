@@ -17,6 +17,9 @@ interface Request {
   includeNotQueueDefined?: string;
   tenantId: string | number;
   profile: string;
+  pas: boolean | undefined;
+  startDate: string | undefined;
+  endDate: string | undefined;
 }
 
 interface Response {
@@ -37,9 +40,46 @@ const ListTicketsService = async ({
   isNotAssignedUser,
   includeNotQueueDefined,
   tenantId,
-  profile
+  profile,
+  pas,
+  startDate,
+  endDate
 }: Request): Promise<Response> => {
   // check is admin
+  const Pas = pas;
+  if (Pas) {
+    const query = `SELECT DISTINCT t.id, c.name, c.number, t.codigoPas, DATE_FORMAT(t.createdAt,'%d-%m-%Y') AS created
+    FROM Tickets t
+    INNER JOIN Contacts c ON c.id = t.contactId
+    WHERE t.codigoPas AND t.createdAt BETWEEN DATE_FORMAT(:startDate, '%Y-%m-%d %00:%00:%00') AND DATE_FORMAT(:endDate, '%Y-%m-%d %23:%59:%59')
+    GROUP BY 
+    t.id,
+    t.codigoPas,
+    created,
+    c.name,
+    c.number
+    ORDER BY t.createdAt DESC`;
+    const tickets: any = await Ticket.sequelize?.query(query, {
+      replacements: {
+        startDate,
+        endDate
+      },
+      type: QueryTypes.SELECT,
+      nest: true
+    });
+    let count = 0;
+    let ticketsLength = 0;
+    if (tickets?.length) {
+      count = tickets[0].count;
+      ticketsLength = tickets.length;
+    }
+    const hasMore = count > ticketsLength;
+    return {
+      tickets: tickets || [],
+      count,
+      hasMore
+    };
+  }
   const isAdminShowAll = showAll == "true" && profile === "admin";
   const isUnread =
     withUnreadMessages && withUnreadMessages == "true" ? "S" : "N";

@@ -53,6 +53,11 @@ const routes = [
         component: () => import('pages/relatorios/RelatorioContatosGeral')
       },
       {
+        path: 'Contatos-por-CodigoPas',
+        name: 'Contatos-por-CodigoPas',
+        component: () => import('pages/relatorios/RelatorioContatosPas')
+      },
+      {
         path: 'contatos-por-etiquetas',
         name: 'contatos-por-etiquetas',
         component: () => import('pages/relatorios/RelatorioContatosEtiquetas')

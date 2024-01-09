@@ -679,6 +679,19 @@ export default {
       const { data } = await ListarFilas()
       this.filas = data
     },
+    ErrorMessage (message) {
+      return this.$q.notify({
+        type: 'negative',
+        progress: true,
+        position: 'top',
+        message: message,
+        actions: [{
+          icon: 'close',
+          round: true,
+          color: 'white'
+        }]
+      })
+    },
     setConfigWidth () {
       const diffDays = differenceInDays(new Date(this.params.endDate), new Date(this.params.startDate))
       if (diffDays > 30) {
@@ -801,6 +814,20 @@ export default {
         })
     },
     getDashData () {
+      const diffDays = differenceInDays(new Date(this.params.endDate), new Date(this.params.startDate))
+      if (diffDays > 90) {
+        this.ErrorMessage('Limite de 90 dias ao gerar relatorio')
+        return
+      } else if (diffDays < 0) {
+        this.params.endDate = this.params.startDate
+        this.setConfigWidth()
+        this.getDashTicketsAndTimes()
+        this.getDashTicketsChannels()
+        this.getDashTicketsEvolutionChannels()
+        this.getDashTicketsQueue()
+        this.getDashTicketsEvolutionByPeriod()
+        this.getDashTicketsPerUsersDetail()
+      }
       this.setConfigWidth()
       this.getDashTicketsAndTimes()
       this.getDashTicketsChannels()

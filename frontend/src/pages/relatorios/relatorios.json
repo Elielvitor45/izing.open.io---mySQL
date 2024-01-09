@@ -18,5 +18,10 @@
       "name": "estatisticas-atendimentos-usuarios",
       "titulo": "Resumo Atendimentos Usuários",
       "objetivo": "Apresenta o resumo dos atendimentos por usuários."
+    },
+    {
+      "name": "Contatos-por-CodigoPas",
+      "titulo": "Contatos por PAS",
+      "objetivo": "Apresenta os contatos que tem Pas ativos"
     }
   ]

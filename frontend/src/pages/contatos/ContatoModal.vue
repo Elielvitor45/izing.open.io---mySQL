@@ -170,7 +170,6 @@ export default {
           }]
         })
       }
-
       var contato = {
         ...this.contato,
         number: '55' + this.contato.number // inserir o DDI do brasil para consultar o número
@@ -182,6 +181,7 @@ export default {
         this.disableButton = true
         if (this.contactId) {
           const { data } = await EditarContato(this.contactId, contato)
+          console.log(data)
           this.$emit('contatoModal:contato-editado', data)
           this.$q.notify({
             type: 'info',
