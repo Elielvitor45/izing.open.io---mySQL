@@ -566,10 +566,22 @@
                 </template>
               </q-timeline>
             </q-scroll-area>
+            <div style="padding-top:50px;">Últimas ligações</div>
+             <template v-for="item in logsCalls">
+                <div class="q-pa-md" :key="item">
+                        <div class="q-gutter-md">
+                            <div class="q-col-xs-12 q-col-md-6 q-col-lg-4" style="padding-right:5px;">
+                              <q-icon name="phone_callback" size="30px" color="green"/>
+                              <span>{{ item.Telefone }}</span>
+                              <br>
+                              <span>{{ $formatarData(item.Data, 'dd/MM/yyyy HH:mm')}}</span>
+                            </div>
+                      </div>
+                  </div>
+              </template>
           </q-card-section>
         </q-card>
       </q-dialog>
-
     </q-layout>
     <audio ref="audioNotificationPlay">
       <source :src="alertSound"
