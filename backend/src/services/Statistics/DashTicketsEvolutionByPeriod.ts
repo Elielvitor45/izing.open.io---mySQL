@@ -8,28 +8,25 @@ interface Request {
 }
 
 const query = `
-SELECT
-    dt_ref,
-    date_format(dt_ref, '%d/%m/%Y') as label,
-    qtd,
-    ROUND(100.0 * (qtd / total_qtd), 2) AS percentual
+SELECT dt_ref, 
+DATE_FORMAT(dt_ref, '%Y/%m/%d') as label,
+qtd , 
+ROUND(100.0 * (qtd / total_qtd), 2) AS percentual
 FROM (
-    SELECT
-        date_format(t.createdAt, '%d/%m/%Y') AS dt_ref,
-        count(1) AS qtd,
-        (
-            SELECT count(1)
-            FROM Tickets
-            WHERE tenantId = :tenantId
-            AND date_format(t.createdAt, '%d/%m/%Y') BETWEEN :startDate AND :endDate
-        ) AS total_qtd
-    FROM Tickets t
-    WHERE t.tenantId = :tenantId
-    AND date_format(t.createdAt, '%d/%m/%Y') BETWEEN :startDate AND :endDate
-    GROUP BY date_format(t.createdAt, '%d/%m/%Y'), t.createdAt
+	SELECT 
+		date_format(t.createdAt, '%Y-%m-%d') AS dt_ref,
+		COUNT(*) AS qtd,
+		(
+			SELECT COUNT(*)
+			FROM Tickets 
+			WHERE tenantid = :tenantId
+			AND date_format(dt_ref, '%Y-%m-%d') BETWEEN :startDate AND :endDate
+		) AS total_qtd
+		FROM Tickets t
+		WHERE t.tenantid = :tenantId and date_format(t.createdAt, '%Y-%m-%d') BETWEEN :startDate AND :endDate
+		GROUP BY dt_ref
 ) a
-ORDER BY dt_ref;
-`;
+ORDER BY dt_ref;`;
 const DashTicketsEvolutionByPeriod = async ({
   startDate,
   endDate,
@@ -42,7 +39,6 @@ const DashTicketsEvolutionByPeriod = async ({
       endDate
     },
     type: QueryTypes.SELECT
-    // logging: console.log
   });
   return data;
 };
