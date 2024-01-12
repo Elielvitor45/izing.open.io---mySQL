@@ -63,10 +63,10 @@
         </div>
       </q-card-section>
     </q-card>
-    <q-card class="q-my-md q-pa-sm " >
+    <q-card class="q-my-md q-pa-sm" >
       <q-card-section class="q-pa-md">
-        <div class="row q-gutter-md justify-between" style="display: grid; grid-template-columns: auto auto auto auto auto auto; width: 100%; justify-content: center; gap: 10px;">
-          <div class="col-xs-12 col-sm-4 col-md-3 col-lg-2">
+        <div class="row q-gutter-md justify-between" style="justify-content: center; gap: 10px;">
+          <div>
             <q-card class="my-card full-height" flat bordered style="min-width: 300px; border-radius: 20px;">
               <q-card-section horizontal style="display: flex; flex-direction: row;">
                 <q-card-section >
@@ -79,7 +79,7 @@
               </q-card-section>
             </q-card>
           </div>
-          <div class="col-xs-12 col-sm-4 col-md-3 col-lg-1">
+          <div>
             <q-card class="my-card full-height" flat bordered style="min-width: 300px; border-radius: 20px; ">
               <q-card-section horizontal style="display: flex; flex-direction: row;">
                 <q-card-section >
@@ -157,10 +157,9 @@
         <q-card>
           <q-card-section class="q-pa-md">
             <ApexChart
-              ref="ChartTicketsChannels"
+              ref="ChartTicketsUsers"
               type="donut"
               height="300"
-              width="100%"
               :options="ticketsChannelsOptions"
               :series="ticketsChannelsOptions.series"
             />
@@ -182,18 +181,6 @@
         </q-card>
       </div>
     </div>
-    <q-card class="q-my-md">
-      <q-card-section>
-        <ApexChart
-          ref="ChartTicketsEvolutionChannels"
-          type="bar"
-          height="300"
-          width="100%"
-          :options="ticketsEvolutionChannelsOptions"
-          :series="ticketsEvolutionChannelsOptions.series"
-        />
-      </q-card-section>
-    </q-card>
     <q-card class="q-my-md">
       <q-card-section class="q-pa-md">
         <ApexChart
@@ -239,7 +226,6 @@ import { groupBy } from 'lodash'
 import { ListarFilas } from 'src/service/filas'
 import {
   GetDashTicketsAndTimes,
-  GetDashTicketsChannels,
   GetDashTicketsEvolutionChannels,
   GetDashTicketsQueue,
   GetDashTicketsEvolutionByPeriod,
@@ -267,8 +253,8 @@ export default {
         lastIndex: 0
       },
       filas: [],
-      ticketsChannels: [],
-      ticketsChannelsOptions: {
+      ticketsUsers: [],
+      ticketsUsersOptions: {
         // colors: ['#008FFB', '#00E396', '#FEB019'],
         animations: {
           enabled: true,
@@ -296,7 +282,7 @@ export default {
           position: 'bottom'
         },
         title: {
-          text: 'Atendimento por canal'
+          text: 'Atendimento por usuario'
         },
         noData: {
           text: 'Sem dados aqui!',
@@ -420,11 +406,11 @@ export default {
           easing: 'easeinout',
           speed: 1000
         },
+        theme: {
+          mode: 'light',
+          palette: 'palette1'
+        },
         chart: {
-          type: 'bar',
-          // height: 300,
-          stacked: true,
-          stackType: '100%',
           toolbar: {
             tools: {
               download: true,
@@ -438,13 +424,17 @@ export default {
 
           }
         },
-        theme: {
-          mode: 'light',
-          palette: 'palette1'
-        },
         grid: {
           show: true,
-          strokeDashArray: 0
+          strokeDashArray: 0,
+          xaxis: {
+            lines: {
+              show: true
+            }
+          }
+        },
+        stroke: {
+          width: [4, 4, 4]
         },
         fill: {
           type: 'gradient',
@@ -458,60 +448,35 @@ export default {
             stops: [0, 100]
           }
         },
-        dataLabels: {
-          enabled: true
-        },
         title: {
           text: 'Evolução por canal',
           align: 'left'
         },
-        stroke: {
-          width: 0
+        dataLabels: {
+          enabled: true,
+          enabledOnSeries: [1]
         },
-        // responsive: [{
-        //   breakpoint: 480,
-        //   options: {
-        //     chart: {
-        //       width: 250
-        //     },
-        //     legend: {
-        //       position: 'bottom'
-        //     }
-        //   }
-        // }],
         xaxis: {
-          type: 'category',
-          categories: [],
-          tickPlacement: 'on'
-          // labels: {
-          //   formatter: function (value, timestamp, opts) {
-          //     return format(new Date(timestamp), 'dd/MM')
-          //     // return opts.dateFormatter().format('dd MMM')
-          //   }
-          // }
-          // type: 'datetime'
-          // format: 'dd/MM'
-          // datetimeFormatter: {
-          //   // year: 'yyyy',
-          //   month: 'MM',
-          //   day: 'DD'
-          //   // hour: 'HH:mm',
-          // }
+          categories: []
         },
         yaxis: {
           title: {
-            text: 'Atendimentos',
-            style: {
-              color: '#FFF'
-            }
+            text: 'Atendimentos'
           }
         },
         tooltip: {
+          shared: false,
+          x: {
+            show: false
+          },
           y: {
             formatter: function (val) {
               return Number(val).toFixed(0)
             }
           }
+        },
+        legend: {
+          show: false
         }
       },
       ticketsEvolutionByPeriod: [],
@@ -635,24 +600,20 @@ export default {
           field: 'qtd_por_usuario'
         },
         {
-          name: 'TME',
+          name: 'tme',
           label: 'T.M.E',
-          field: 'TME',
+          field: 'tme',
           align: 'center',
           headerStyle: 'text-align: center !important',
-          format: v => {
-            return this.formatDuration(v) || ''
-          }
+          format: (v) => { return this.formatDuration(v) }
         },
         {
-          name: 'TMA',
+          name: 'tma',
           label: 'T.M.A',
-          field: 'TMA',
+          field: 'tma',
           align: 'center',
           headerStyle: 'text-align: center !important',
-          format: v => {
-            return this.formatDuration(v) || ''
-          }
+          format: (v) => { return this.formatDuration(v) }
         }
       ]
     }
@@ -746,19 +707,22 @@ export default {
           console.error(err)
         })
     },
-    getDashTicketsChannels () {
-      GetDashTicketsChannels(this.params).then(res => {
-        this.ticketsChannels = res.data
+    getDashTicketsUsers () {
+      GetDashTicketsPerUsersDetail(this.params).then(res => {
+        this.ticketsUsers = res.data
         const series = []
         const labels = []
-        this.ticketsChannels.forEach(e => {
-          series.push(+e.qtd)
-          labels.push(e.label)
+        this.ticketsUsers.forEach(e => {
+          console.log(e)
+          if(e.name){
+            series.push(+e.qtd_resolvidos)
+            labels.push(e.name)
+          }
         })
-        this.ticketsChannelsOptions.series = series
-        this.ticketsChannelsOptions.labels = labels
-        this.$refs.ChartTicketsChannels.updateOptions(this.ticketsChannelsOptions)
-        this.$refs.ChartTicketsChannels.updateSeries(series, true)
+        this.ticketsUsersOptions.series = series
+        this.ticketsUsersOptions.labels = labels
+        this.$refs.ChartTicketsUsers.updateOptions(this.ticketsUsersOptions)
+        this.$refs.ChartTicketsUsers.updateSeries(series, true)
       })
         .catch(err => {
           console.error(err)
@@ -775,18 +739,22 @@ export default {
           // })
           this.ticketsEvolutionChannelsOptions.labels = labels
           this.ticketsEvolutionChannelsOptions.xaxis.categories = labels
-          const series = []
-          const dados = groupBy({ ...this.ticketsEvolutionChannels }, 'label')
-          for (const item in dados) {
-            series.push({
-              name: item,
-              // type: 'line',
-              data: dados[item].map(d => {
-                // if (labels.includes(format(new Date(d.dt_ref), 'dd/MM'))) {
-                return d.qtd
-              })
-            })
+          const series = [{
+            name: '',
+            type: 'column',
+            data: []
+          }, {
+            type: 'line',
+            data: []
           }
+          ]
+          const dados = groupBy({ ...this.ticketsEvolutionChannels }, 'label')
+          console.log(dados)
+          this.ticketsEvolutionChannels.forEach(x=>{
+            series[0].name = x.label
+            series[0].data.push(x.qtd)
+          })
+          series[1].data = series[0].data
           this.ticketsEvolutionChannelsOptions.series = series
           this.$refs.ChartTicketsEvolutionChannels.updateOptions(this.ticketsEvolutionChannelsOptions)
           this.$refs.ChartTicketsEvolutionChannels.updateSeries(series, true)
@@ -826,7 +794,7 @@ export default {
     getDashTicketsPerUsersDetail () {
       GetDashTicketsPerUsersDetail(this.params)
         .then(res => {
-          this.ticketsPerUsersDetail = res.data
+          this.ticketsPerUsersDetail = res.data.filter((x,y)=> x.name != null)
         })
         .catch(error => {
           console.error(error)
@@ -841,7 +809,7 @@ export default {
         this.params.endDate = this.params.startDate
         this.setConfigWidth()
         await this.getDashTicketsAndTimes()
-        this.getDashTicketsChannels()
+        this.getDashTicketsUsers()
         this.getDashTicketsEvolutionChannels()
         this.getDashTicketsQueue()
         this.getDashTicketsEvolutionByPeriod()
@@ -849,7 +817,7 @@ export default {
       }
       this.setConfigWidth()
       await this.getDashTicketsAndTimes()
-      this.getDashTicketsChannels()
+      this.getDashTicketsUsers()
       this.getDashTicketsEvolutionChannels()
       this.getDashTicketsQueue()
       this.getDashTicketsEvolutionByPeriod()
@@ -870,6 +838,7 @@ export default {
       }
 
     }
+    this.ticketsUsersOptions ={ ...this.ticketsUsersOptions, theme }
     this.ticketsQueueOptions = { ...this.ticketsQueueOptions, theme }
     this.ticketsChannelsOptions = { ...this.ticketsChannelsOptions, theme }
     this.ticketsEvolutionChannelsOptions = { ...this.ticketsEvolutionChannelsOptions, theme }
