@@ -23,7 +23,6 @@ const UpdateTicketPasService = async ({
         },
         type: QueryTypes.UPDATE
     });
-    console.log(data)
     return data;
 };
 
