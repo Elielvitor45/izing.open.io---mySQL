@@ -511,7 +511,6 @@
                     </q-item>
                   </q-list>
                 </template>
-
               </q-card-section>
             </q-card>
           </div>
@@ -544,7 +543,7 @@
             </div>
           </q-card-section>
           <q-card-section class="">
-            <q-scroll-area style="height: calc(100vh - 200px);"
+            <q-scroll-area style="height: calc(100vh - 525px);"
               class="full-width">
               <q-timeline color="black"
                 style="width: 360px"
@@ -566,12 +565,15 @@
                 </template>
               </q-timeline>
             </q-scroll-area>
-            <div style="padding-top:50px;">Últimas ligações</div>
+            <div style="padding-top:50px;">Últimas ligações:  <div>
+              {{ logsCalls[0]?.idPas }}
+            </div>
+          </div>
              <template v-for="item in logsCalls">
                 <div class="q-pa-md" :key="item">
                         <div class="q-gutter-md">
-                            <div class="q-col-xs-12 q-col-md-6 q-col-lg-4" style="padding-right:5px;">
-                              <q-icon name="phone_callback" size="30px" color="green"/>
+                            <div class="q-col-xs-12 q-col-md-6 q-col-lg-4">
+                              <q-icon name="phone_callback" size="30px" color="green" style="padding-right:20px"/>
                               <span>{{ item.Telefone }}</span>
                               <br>
                               <span>{{ $formatarData(item.Data, 'dd/MM/yyyy HH:mm')}}</span>
@@ -591,6 +593,7 @@
 </template>
 
 <script>
+import { ref } from 'vue'
 import ItemStatusChannel from 'src/pages/sessaoWhatsapp/ItemStatusChannel.vue'
 import ContatoModal from 'src/pages/contatos/ContatoModal'
 import ItemTicket from './ItemTicket'
@@ -669,7 +672,9 @@ export default {
       mensagensRapidas: [],
       modalEtiquestas: false,
       exibirModalLogs: false,
-      logsTicket: []
+      logsTicket: [],
+      logsCalls: [],
+      pas: ''
     }
   },
   watch: {
@@ -754,6 +759,11 @@ export default {
         // utilizar refs do layout
         this.$refs.audioNotificationPlay.play()
       })
+    },
+    findPas () {
+      const ob = this.logsCalls.forEach((x, y) => y === 2 && x.idPas)
+      this.pas = ob.idPas
+      return this.pas
     },
     async listarConfiguracoes () {
       const { data } = await ListarConfiguracoes()
@@ -907,7 +917,8 @@ export default {
     },
     async abrirModalLogs () {
       const { data } = await ConsultarLogsTicket({ ticketId: this.ticketFocado.id })
-      this.logsTicket = data
+      this.logsTicket = data.logsTicket
+      this.logsCalls = data.logsCalls
       this.exibirModalLogs = true
     }
   },
@@ -963,6 +974,11 @@ export default {
     this.$root.$on('update-ticket:info-contato', this.setValueMenuContact)
     this.socketDisconnect()
     this.$store.commit('TICKET_FOCADO', {})
+  },
+setup () {
+    return {
+      slide: ref(1)
+    }
   }
 }
 </script>

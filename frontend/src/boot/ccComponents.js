@@ -60,7 +60,18 @@ const iniciaisString = nomecompleto => {
 }
 
 const formatarData = (data, formato = 'dd/MM/yyyy') => {
-  return format(parseISO(data), formato, { locale: pt })
+  const t = format(parseISO(data), formato, { locale: pt })
+  return t
+}
+
+const checkCountry = (idioma) => {
+  if (idioma === 'pt_BR') {
+    return '&#127463;&#127479;'
+  } else if (idioma === 'es') {
+    return 'ES.png'
+  } else {
+    return 'en_US.png'
+  }
 }
 
 const setConfigsUsuario = ({ isDark }) => {
@@ -99,6 +110,7 @@ export default ({
   Vue.component('cDateTimePick', cDateTimePick)
   Vue.prototype.$formatarValorMoeda = formatarValorMoeda
   Vue.prototype.$round = arredodar
+  Vue.prototype.$checkCountry = checkCountry
   Vue.prototype.$formatarData = formatarData
   Vue.prototype.$iniciaisString = iniciaisString
   Vue.prototype.$notificarErro = notificarErro

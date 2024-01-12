@@ -15,6 +15,7 @@ import ShowTicketService from "../services/TicketServices/ShowTicketService";
 import UpdateTicketService from "../services/TicketServices/UpdateTicketService";
 import SendWhatsAppMessage from "../services/WbotServices/SendWhatsAppMessage";
 import { ParsedUrlQueryInput } from "querystring";
+import CheckLastCallService from "../services/CheckAsteriskService/CheckLastCallService";
 
 type IndexQuery = {
   searchParam: string;
@@ -225,8 +226,11 @@ export const showLogsTicket = async (
   res: Response
 ): Promise<Response> => {
   const { ticketId } = req.params;
-
   const logsTicket = await ShowLogTicketService({ ticketId });
-
-  return res.status(200).json(logsTicket);
+  const logsCalls = await CheckLastCallService({ ticketId });
+  const postData = {
+    logsTicket: logsTicket,
+    logsCalls: logsCalls
+  }
+  return res.status(200).json(postData);
 };

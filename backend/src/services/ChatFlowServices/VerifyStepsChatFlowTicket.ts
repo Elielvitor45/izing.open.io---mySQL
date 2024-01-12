@@ -463,7 +463,6 @@ const VerifyStepsChatFlowTicket = async (
       if (pasCondition){
         const ticketId = ticket.id
         const codigoPas = pasCondition.idPas
-        const t = {ticketId, codigoPas}
         await UpdateTicketPasService({ticketId, codigoPas})
         await AsteriskInsertAtendimento(pasCondition.idPas,ticket.contact.number);
       }
