@@ -268,7 +268,7 @@
         style="width: 500px"
       >
         <q-card-section>
-          <div class="text-h6">Selecione o destino:</div>
+          <div class="text-h6">Selecione o destino(Fila ou Usuario):</div>
         </q-card-section>
         <q-card-section>
           <q-select
@@ -332,6 +332,18 @@ export default {
       usuarios: [],
       filaSelecionado: null,
       filas: []
+    }
+  },
+  watch: {
+    filaSelecionado (val) {
+      if (val) {
+        this.usuarioSelecionado = null
+      }
+    },
+    usuarioSelecionado (val) {
+      if (val) {
+        this.filaSelecionado = null
+      }
     }
   },
   computed: {
