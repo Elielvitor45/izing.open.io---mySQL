@@ -216,6 +216,13 @@ export default {
         this.$emit('update:modalContato', false)
       } catch (error) {
         console.error(error)
+        if(error.data.error === 'ERR_WAPP_EQUAL_CONTACT_USER'){
+          this.$notificarErro('O numero do contato não pode ser igual ao numero do Whatsapp conectado')
+          this.disableButton = false
+        }else if(error.data.error === 'ERR_WAPP_TICKET_OPEN_OR_PENDING'){
+          this.$notificarErro('O contato não pode ser editado, pois existe um ticket em aberto')
+          this.disableButton = false
+        }
         this.disableButton = false
         this.$notificarErro('Ocorreu um erro ao criar o contato', error)
       }
