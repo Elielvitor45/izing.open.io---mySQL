@@ -50,7 +50,7 @@ const HandleMessage = async (
 	  whatsapp = await ShowWhatsAppService({ id: wbot.id });
 
 	  const { tenantId } = whatsapp;
-
+    const isGroup = msg.id.remote.split('@')[1]
 	  //IGNORAR MENSAGENS DE GRUPO       
 	  const Settingdb = await Setting.findOne({
 		where: {key: 'ignoreGroupMsg', tenantId: tenantId }
@@ -58,7 +58,7 @@ const HandleMessage = async (
 	  if(Settingdb?.value == 'enabled') {
 		if (
 		  msg.from === "status@broadcast" ||
-		  msg.author != null
+		  isGroup ==='g.us'
 		) {
 		  return;
 		}
