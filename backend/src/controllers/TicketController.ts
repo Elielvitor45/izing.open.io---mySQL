@@ -119,9 +119,10 @@ export const updatePasId = async (req: Request, res: Response): Promise<Response
   const data = await CheckCustomer(req.body.params);
   if(data != undefined){
     await UpdateTicketPasService({ ticketId: req.params.ticketId, codigoPas: req.body.params})
-    return res.status(200);
+    return res.status(200).json('');
+  }else{
+    throw new Error("ERR_UPDATE_DATA_INVALID")
   }
-  throw new Error("PAS inválido! Por favor, informe um PAS válido")
 }
 
 export const show = async (req: Request, res: Response): Promise<Response> => {
