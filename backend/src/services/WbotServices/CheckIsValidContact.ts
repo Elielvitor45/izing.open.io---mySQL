@@ -12,22 +12,10 @@ const CheckIsValidContact = async (
 ): Promise<any> => {
   const defaultWhatsapp = await GetDefaultWhatsApp(tenantId);
   const wbot = getWbot(defaultWhatsapp.id);
-  const ticketC = await Ticket.findOne({
-    where: { tenantId,  status: ['open','pending'] },
-    attributes: ["id"],
-    include: [
-      {
-        model: Contact,
-        where: {number:number}
-      }
-    ]
-  });
   try {
     // const isValidNumber = await wbot.isRegisteredUser(`${number}@c.us`);
     if(defaultWhatsapp.number === number){
       throw new AppError("numberEqualWhatsappUserNumber", 400);
-    }else if(ticketC){
-      throw new AppError("ticketisopenorpending", 400);
     }
     const idNumber = await wbot.getNumberId(number);
     if (!idNumber) {
@@ -41,8 +29,6 @@ const CheckIsValidContact = async (
       throw new AppError("ERR_WAPP_INVALID_CONTACT");
     }else if(err.message === "numberEqualWhatsappUserNumber"){
       throw new AppError("ERR_WAPP_EQUAL_CONTACT_USER");
-    }else if(err.message === "ticketisopenorpending"){
-      throw new AppError("ERR_WAPP_TICKET_OPEN_OR_PENDING");
     }
     throw new AppError("ERR_WAPP_CHECK_CONTACT");
   }

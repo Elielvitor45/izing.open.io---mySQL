@@ -190,7 +190,7 @@
         <q-card-section class="q-mb-lg">
           <InputMensagem isScheduleDate
             :mensagensRapidas="mensagensRapidas"
-            :replyingMessage.sync="replyingMessage" />
+            :replyingMessage.sync="replyingMessage"/>
         </q-card-section>
 
       </q-card>

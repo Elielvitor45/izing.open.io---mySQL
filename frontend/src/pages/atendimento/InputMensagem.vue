@@ -24,7 +24,6 @@
           no-focus
           class="no-box-shadow no-shadow"
           fit
-          persistent
           max-height="200px"
           :offset="[0, -45]"
           @hide="visualizarMensagensRapidas = false"
@@ -33,7 +32,7 @@
           <q-list class="no-shadow no-box-shadow"
             style="min-width: 100px"
             separator
-            v-if="!cMensagensRapidas.length">
+            v-if="cMensagensRapidas.length<=0">
             <q-item>
               <q-item-section>
                 <q-item-label class="text-negative text-bold">Ops... Nada por aqui!</q-item-label>
@@ -170,15 +169,19 @@
               Enviar arquivo
             </q-tooltip>
           </q-btn>
-          <q-btn dense
-            flat
-            round
-            icon="mdi-message-flash-outline"
-            @click="visualizarMensagensRapidas = !visualizarMensagensRapidas">
-            <q-tooltip content-class="text-bold">
-              Mensagens Rápidas
-            </q-tooltip>
-          </q-btn>
+          <div v-show="textvalue == 0" style="display: flex; flex-direction: column;">
+            <q-btn
+              dense
+              flat
+              round
+              icon="mdi-message-flash-outline"
+              @click="visualizarMensagensRapidas = !visualizarMensagensRapidas"
+              >
+              <q-tooltip content-class="text-bold">
+                Mensagens Rápidas
+              </q-tooltip>
+            </q-btn>
+          </div>
         </template>
       </q-input>
       <!-- tamanho maximo por arquivo de 10mb -->
@@ -210,7 +213,9 @@
         flat
         icon="mdi-send"
         class="bg-padrao btn-rounded q-mx-xs"
-        :color="$q.dark.isActive ? 'white' : ''">
+        :color="$q.dark.isActive ? 'white' : ''"
+        v-close-popup
+        >
         <q-tooltip content-class=" text-bold">
           Enviar Mensagem
         </q-tooltip>
@@ -338,6 +343,7 @@ export default {
       visualizarMensagensRapidas: false,
       arquivos: [],
       textChat: '',
+      textvalue: '',
       sign: true,
       scheduleDate: null
     }
@@ -539,6 +545,16 @@ export default {
         this.$emit('update:replyingMessage', null)
         this.abrirFilePicker = false
         this.abrirModalPreviewImagem = false
+        this.$q.notify({
+          type: 'positive',
+          message: 'Mensagem Cadastrada com Sucesso',
+          position: 'top',
+          actions: [{
+            icon: 'close',
+            round: true,
+            color: 'white'
+          }]
+        })
         setTimeout(() => {
           this.scrollToBottom()
         }, 300)

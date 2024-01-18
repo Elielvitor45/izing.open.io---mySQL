@@ -15,6 +15,7 @@ import ListMessagesService from "../services/MessageServices/ListMessagesService
 import ShowTicketService from "../services/TicketServices/ShowTicketService";
 import DeleteWhatsAppMessage from "../services/WbotServices/DeleteWhatsAppMessage";
 import { logger } from "../utils/logger";
+import { DeleteMessageScheduled } from "../services/MessageServices/DeleteMessageScheduled";
 // import SendWhatsAppMedia from "../services/WbotServices/SendWhatsAppMedia";
 // import SendWhatsAppMessage from "../services/WbotServices/SendWhatsAppMessage";
 
@@ -96,7 +97,16 @@ export const remove = async (
   const { messageId } = req.params;
   const { tenantId } = req.user;
   try {
-    await DeleteMessageSystem(req.body.id, messageId, tenantId);
+    if(messageId === 'null'|| !messageId){
+      const { idFront } = req.body;
+      if(idFront){
+        await DeleteMessageScheduled(idFront,tenantId);
+      }else{
+        throw new AppError("ERR_DELETE_NOTFOUND_IDFRONT")
+      }
+    }else{
+      await DeleteMessageSystem(req.body.id, messageId, tenantId);
+    }
   } catch (error) {
     logger.error(`ERR_DELETE_SYSTEM_MSG: ${error}`);
     throw new AppError("ERR_DELETE_SYSTEM_MSG");

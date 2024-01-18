@@ -38,6 +38,7 @@
           unmasked-value
           hint="Número do contato deverá conter 8 dígitos e ser precedido do DDD. "
           label="Número"
+          :readonly="this.ticketPendingOrOpen"
         />
         <c-input
           class="col-12"
@@ -102,6 +103,10 @@ export default {
     contactId: {
       type: Number,
       default: null
+    },
+    ticketPendingOrOpen: {
+      type: Boolean,
+      default: false
     }
   },
   data () {
@@ -127,10 +132,12 @@ export default {
   },
   methods: {
     async fetchContact () {
+      console.log(this.ticketPendingOrOpen)
       if (!this.contactId) return
       try {
         const { data } = await ObterContato(this.contactId)
         this.contato = data
+        console.log(data)
         if (data.number.substring(0, 2) === '55') {
           this.contato.number = data.number.substring(2)
         }
@@ -220,9 +227,6 @@ export default {
         console.error(error)
         if (error.data.error === 'ERR_WAPP_EQUAL_CONTACT_USER') {
           this.$notificarErro('O numero do contato não pode ser igual ao numero do Whatsapp conectado')
-          this.disableButton = false
-        } else if (error.data.error === 'ERR_WAPP_TICKET_OPEN_OR_PENDING') {
-          this.$notificarErro('O contato não pode ser editado, pois existe um ticket em aberto')
           this.disableButton = false
         }
         this.disableButton = false

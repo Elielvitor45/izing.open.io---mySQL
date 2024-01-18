@@ -18,7 +18,7 @@ export const GetWbotMessage = async (
 
   const fetchWbotMessagesGradually = async (): Promise<void | WbotMessage> => {
     const chatMessages = await wbotChat.fetchMessages({ limit });
-
+    
     const msgFound = chatMessages.find(msg => msg.id.id === messageId);
 
     if (!msgFound && limit < 100) {

@@ -428,7 +428,6 @@ export default {
       try {
         const { data } = await ListarUsuarios()
         this.usuarios = data.users
-        console.log(this.usuarios)
       } catch (error) {
         console.error(error)
         this.$notificarErro('Problema ao carregar usuários', error)
