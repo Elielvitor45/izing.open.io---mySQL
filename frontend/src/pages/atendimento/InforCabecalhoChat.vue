@@ -128,6 +128,18 @@
                 Transferir
               </q-tooltip>
             </q-btn>
+            <q-btn
+              @click="associarPas"
+              flat
+              color="brown"
+              class="bg-padrao btn-rounded"
+              :disable="cticket.status == 'closed'"
+            >
+              <q-icon name="key" />
+              <q-tooltip content-class="bg-brown text-bold">
+                Associar PAS
+              </q-tooltip>
+            </q-btn>
           </template>
           <template v-else>
             <q-fab
@@ -259,6 +271,43 @@
     </q-header>
 
     <q-dialog
+      v-model="modalAssociarPas"
+      @hide="modalAssociarPas=false"
+      persistent
+    >
+      <q-card
+        class="q-pa-md"
+        style="width: 500px"
+      >
+        <q-card-section>
+          <div class="text-h6">Insira o PAS:</div>
+        </q-card-section>
+        <c-input
+          class="col-6"
+          outlined
+          label="PAS"
+          v-model="codigoPas"
+        />
+        <q-card-actions align="right">
+          <q-btn
+            flat
+            label="Sair"
+            color="negative"
+            v-close-popup
+            class="q-mr-lg"
+            @click="limparCampos"
+          />
+          <q-btn
+            flat
+            label="Salvar"
+            color="primary"
+            @click="associarPasSalvar(codigoPas)"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <q-dialog
       v-model="modalTransferirTicket"
       @hide="modalTransferirTicket=false"
       persistent
@@ -321,17 +370,19 @@
 const userId = +localStorage.getItem('userId')
 import { mapGetters } from 'vuex'
 import { ListarUsuarios } from 'src/service/user'
-import { AtualizarTicket } from 'src/service/tickets'
+import { AtualizarTicket, AtualizarPas } from 'src/service/tickets'
 import { ListarFilas } from 'src/service/filas'
 export default {
   name: 'InfoCabecalhoMensagens',
   data () {
     return {
+      modalAssociarPas: false,
       modalTransferirTicket: false,
       usuarioSelecionado: null,
       usuarios: [],
       filaSelecionado: null,
-      filas: []
+      filas: [],
+      codigoPas: ''
     }
   },
   computed: {
@@ -387,6 +438,20 @@ export default {
           this.listarUsuarios()
         ]
         )
+        this.modalTransferirTicket = true
+      } catch (error) {
+        console.error(error)
+        this.$notificarErro('Problema ao carregar', error)
+      }
+    },
+    async associarPas () {
+      this.modalAssociarPas = true
+    },
+    async associarPasSalvar () {
+      // await AtualizarPas(this.codigoPas, this.ticketFocado.id)
+      // this.modalAssociarPas = false
+      try {
+        await AtualizarPas(this.codigoPas, this.ticketFocado.id)
         this.modalTransferirTicket = true
       } catch (error) {
         console.error(error)

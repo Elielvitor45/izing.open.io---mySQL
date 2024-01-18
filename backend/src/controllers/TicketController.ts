@@ -6,7 +6,7 @@ import Message from "../models/Message";
 import Whatsapp from "../models/Whatsapp";
 import CreateLogTicketService from "../services/TicketServices/CreateLogTicketService";
 import { generateMessage } from "../utils/mustache";
-
+import CheckCustomer from "../services/CheckAsteriskService/VerifyClient";
 import CreateTicketService from "../services/TicketServices/CreateTicketService";
 import DeleteTicketService from "../services/TicketServices/DeleteTicketService";
 import ListTicketsService from "../services/TicketServices/ListTicketsService";
@@ -16,6 +16,8 @@ import UpdateTicketService from "../services/TicketServices/UpdateTicketService"
 import SendWhatsAppMessage from "../services/WbotServices/SendWhatsAppMessage";
 import { ParsedUrlQueryInput } from "querystring";
 import CheckLastCallService from "../services/CheckAsteriskService/CheckLastCallService";
+import UpdateTicketPasService from "../services/TicketServices/UpdateTicketPasService";
+import LogTicket from "../models/LogTicket";
 
 type IndexQuery = {
   searchParam: string;
@@ -113,14 +115,13 @@ export const store = async (req: Request, res: Response): Promise<Response> => {
   return res.status(200).json(ticket);
 };
 
-export const showPas = async (req: Request, res: Response): Promise<Response> => {
-  const { startDate } = req.params;
-  const { endDate } = req.params;
-  const { tenantId } = req.user;
-  console.log('observando')
-  const ab = 1;
-  return res.status(200).json(ab);
-
+export const updatePasId = async (req: Request, res: Response): Promise<Response> =>{
+  const data = await CheckCustomer(req.body.params);
+  if(data != undefined){
+    await UpdateTicketPasService({ ticketId: req.params.ticketId, codigoPas: req.body.params})
+    return res.status(200);
+  }
+  throw new Error("PAS inválido! Por favor, informe um PAS válido")
 }
 
 export const show = async (req: Request, res: Response): Promise<Response> => {
@@ -226,8 +227,9 @@ export const showLogsTicket = async (
   res: Response
 ): Promise<Response> => {
   const { ticketId } = req.params;
-  const logsTicket = await ShowLogTicketService({ ticketId });
-  const logsCalls = await CheckLastCallService({ ticketId });
+  const logsTicket = await ShowLogTicketService({ ticketId })
+  const logsCalls = await CheckLastCallService({ ticketId })
+  
   const postData = {
     logsTicket: logsTicket,
     logsCalls: logsCalls
