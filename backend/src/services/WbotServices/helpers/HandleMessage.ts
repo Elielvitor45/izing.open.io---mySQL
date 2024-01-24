@@ -8,14 +8,12 @@ import { logger } from "../../../utils/logger";
 import FindOrCreateTicketService from "../../TicketServices/FindOrCreateTicketService";
 import ShowWhatsAppService from "../../WhatsappService/ShowWhatsAppService";
 import IsValidMsg from "./IsValidMsg";
-// import VerifyAutoReplyActionTicket from "./VerifyAutoReplyActionTicket";
 import VerifyContact from "./VerifyContact";
 import VerifyMediaMessage from "./VerifyMediaMessage";
 import VerifyMessage from "./VerifyMessage";
 import verifyBusinessHours from "./VerifyBusinessHours";
 import VerifyStepsChatFlowTicket from "../../ChatFlowServices/VerifyStepsChatFlowTicket";
 import Queue from "../../../libs/Queue";
-// import isMessageExistsService from "../../MessageServices/isMessageExistsService";
 import Setting from "../../../models/Setting";
 import TimerCloseTicket from "../LimitTimeService";
 import { delay } from "bluebird";
@@ -70,10 +68,6 @@ const HandleMessage = async (
         let groupContact: Contact | undefined;
 
         if (msg.fromMe) {
-          // media messages sent from me from cell phone, first comes with "hasMedia = false" and type = "image/ptt/etc"
-          // the media itself comes on body of message, as base64
-          // if this is the case, return and let this media be handled by media_uploaded event
-          // it should be improoved to handle the base64 media here in future versions
           if (!msg.hasMedia && msg.type !== "chat" && msg.type !== "vcard")
             return;
 
@@ -137,11 +131,14 @@ const HandleMessage = async (
           compareActivation = false;
           console.log(error);
         }
+        const chatFlow = await ticket.getChatFlow();
         // await VerifyAutoReplyActionTicket(msg, ticket);
         const verifyClose = await verifyBusinessHours(msg, ticket);
-        if (verifyClose === false || msg.body === '') {
-        } else {
-          await VerifyStepsChatFlowTicket(msg, ticket);
+        if (chatFlow?.dataValues.isActive) {
+          if ((verifyClose === false || msg.body === '')) {
+          } else {
+            await VerifyStepsChatFlowTicket(msg, ticket);
+          }
         }
         const apiConfig: any = ticket.apiConfig || {};
         if (

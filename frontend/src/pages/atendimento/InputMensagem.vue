@@ -13,6 +13,8 @@
         label="Data/Hora Agendamento"
         mode="datetime"
         color="primary"
+        :date-options="dateOptionsB"
+        :time-options="timeOptions"
         v-model="scheduleDate"
         format24h />
     </div>
@@ -32,19 +34,7 @@
           <q-list class="no-shadow no-box-shadow"
             style="min-width: 100px"
             separator
-            v-if="cMensagensRapidas.length<=0">
-            <q-item>
-              <q-item-section>
-                <q-item-label class="text-negative text-bold">Ops... Nada por aqui!</q-item-label>
-                <q-item-label caption>Cadastre suas mensagens na administração de sistema.</q-item-label>
-              </q-item-section>
-            </q-item>
-          </q-list>
-
-          <q-list class="no-shadow no-box-shadow"
-            style="min-width: 100px"
-            separator
-            v-else>
+            v-if="cMensagensRapidas.length > 0">
             <q-item v-for="resposta in cMensagensRapidas"
               :key="resposta.key"
               clickable
@@ -58,6 +48,17 @@
               <q-tooltip content-class="bg-padrao text-grey-9 text-bold">
                 {{ resposta.message }}
               </q-tooltip>
+            </q-item>
+          </q-list>
+          <q-list class="no-shadow no-box-shadow"
+            style="min-width: 100px"
+            separator
+            v-else-if="cMensagensRapidas.length <= 0 && !this.textChat">
+            <q-item>
+              <q-item-section>
+                <q-item-label class="text-negative text-bold">Ops... Nada por aqui!</q-item-label>
+                <q-item-label caption>Cadastre suas mensagens na administração de sistema.</q-item-label>
+              </q-item-section>
             </q-item>
           </q-list>
         </q-menu>
@@ -169,7 +170,7 @@
               Enviar arquivo
             </q-tooltip>
           </q-btn>
-          <div v-show="textvalue == 0" style="display: flex; flex-direction: column;">
+          <div v-if="textChat.trim().length <= 0" style="display: flex; flex-direction: column;">
             <q-btn
               dense
               flat
@@ -300,13 +301,15 @@
 </template>
 
 <script>
-import { LocalStorage, uid } from 'quasar'
+import { LocalStorage, uid, date } from 'quasar'
 import mixinCommon from './mixinCommon'
 import { EnviarMensagemTexto } from 'src/service/tickets'
 import { VEmojiPicker } from 'v-emoji-picker'
 import { mapGetters } from 'vuex'
 import RecordingTimer from './RecordingTimer'
 import MicRecorder from 'mic-recorder-to-mp3'
+const today = new Date()
+const { addToDate, subtractFromDate } = date
 const Mp3Recorder = new MicRecorder({ bitRate: 128 })
 
 export default {
@@ -336,6 +339,9 @@ export default {
       abrirFilePicker: false,
       abrirModalPreviewImagem: false,
       isRecordingAudio: false,
+      minMaxModel: today,
+      min: subtractFromDate(today, { days: 0, hour: 3 }),
+      max: addToDate(today, { days: 4, month: 1, minutes: 10 }),
       urlMediaPreview: {
         title: '',
         src: ''
@@ -345,7 +351,7 @@ export default {
       textChat: '',
       textvalue: '',
       sign: true,
-      scheduleDate: null
+      scheduleDate: today
     }
   },
   computed: {
@@ -366,6 +372,20 @@ export default {
     }
   },
   methods: {
+    dateOptionsB (scheduleDate) {
+      const localmin = this.min.toISOString().split('T')[0].replaceAll('-', '/')
+      return scheduleDate >= localmin.split('T')[0]
+    },
+    timeOptions (hr, min) {
+      const localminDate = this.min.toISOString().split('T')[1].split('Z')[0].split('.')[0]
+      if (hr < `${localminDate.split(':')[0]}`) {
+        return false
+      }
+      if (min !== null && (min < localminDate.split(':')[1])) {
+        return false
+      }
+      return true
+    },
     openFilePreview (event) {
       const data = event.clipboardData.files[0]
       const urlImg = window.URL.createObjectURL(data)
