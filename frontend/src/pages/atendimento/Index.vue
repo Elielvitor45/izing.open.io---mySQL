@@ -645,7 +645,6 @@ export default {
       usuario,
       usuarios: [],
       username,
-      CheckTicketStatus: false,
       modalUsuario: false,
       toolbarSearch: true,
       drawerTickets: true,
@@ -734,12 +733,9 @@ export default {
     },
     checkStatus () {
       const status = this.ticketFocado.status
-      console.log(status)
       if (status === 'open' || status === 'pending') {
-        this.CheckTicketStatus = true
         return true
       } else {
-        this.CheckTicketStatus = false
         return false
       }
     }
@@ -878,7 +874,7 @@ export default {
         )
       }
     },
-    deletarMensagem (mensagem,ticketF,idx) {
+    deletarMensagem (mensagem, ticketF, idx) {
       const data = { ...mensagem }
       this.$q.dialog({
         title: 'Atenção!! Deseja realmente deletar a mensagem? ',
@@ -895,9 +891,9 @@ export default {
         },
         persistent: true
       }).onOk(() => {
-        window.location.reload(true);
+        window.location.reload(true)
         this.loading = true
-        ticketF.scheduledMessages.splice(idx,1)
+        ticketF.scheduledMessages.splice(idx, 1)
         DeletarMensagem(data)
           .then(res => {
             this.loading = false
@@ -993,7 +989,7 @@ export default {
     this.socketDisconnect()
     this.$store.commit('TICKET_FOCADO', {})
   },
-setup () {
+  setup () {
     return {
       slide: ref(1)
     }

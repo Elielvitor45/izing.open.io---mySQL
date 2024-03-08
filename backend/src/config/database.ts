@@ -5,17 +5,15 @@ module.exports = {
     charset: "utf8mb4",
     collate: "utf8mb4_unicode_ci"
   },
-  // pool: {
-  //   max: 100,
-  //   min: 5
-  // },
+  
   useUTC: true,
-  dialect: process.env.DB_DIALECT || "postgres",
+  dialect: process.env.DB_DIALECT,
   timezone: "-03:00",
-  host: process.env.POSTGRES_HOST || "localhost",
-  port: process.env.DB_PORT || "5432",
-  database: process.env.POSTGRES_DB || "wchats",
-  username: process.env.POSTGRES_USER || "postgres",
-  password: process.env.POSTGRES_PASSWORD || "marina@0509",
-  logging: false
+  host: process.env.MYSQL_HOST, 
+  port: process.env.DB_PORT,
+  database: process.env.MYSQL_DB, 
+  username: process.env.MYSQL_USER, 
+  password: process.env.MYSQL_PASSWORD, 
+  logging: false,
+  setTimeout: 99999
 };
