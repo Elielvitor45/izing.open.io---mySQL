@@ -993,7 +993,7 @@ export default {
     this.socketDisconnect()
     this.$store.commit('TICKET_FOCADO', {})
   },
-setup () {
+  setup () {
     return {
       slide: ref(1)
     }

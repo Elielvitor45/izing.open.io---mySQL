@@ -463,7 +463,18 @@ export default {
       // this.modalAssociarPas = false
       try {
         await AtualizarPas(this.codigoPas, this.ticketFocado.id)
-        this.modalTransferirTicket = true
+        this.$q.notify({
+          type: 'positive',
+          position: 'top',
+          message: 'Código PAS associado com sucesso!',
+          progress: true,
+          actions: [{
+            icon: 'close',
+            round: true,
+            color: 'white'
+          }]
+        })
+        this.modalAssociarPas = false
       } catch (error) {
         console.error(error)
         this.$notificarErro('Problema ao carregar', error)

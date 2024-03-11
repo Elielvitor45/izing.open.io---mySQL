@@ -714,7 +714,7 @@ export default {
         const labels = []
         this.ticketsUsers.forEach(e => {
           console.log(e)
-          if(e.name){
+          if (e.name) {
             series.push(+e.qtd_resolvidos)
             labels.push(e.name)
           }
@@ -750,7 +750,7 @@ export default {
           ]
           const dados = groupBy({ ...this.ticketsEvolutionChannels }, 'label')
           console.log(dados)
-          this.ticketsEvolutionChannels.forEach(x=>{
+          this.ticketsEvolutionChannels.forEach(x => {
             series[0].name = x.label
             series[0].data.push(x.qtd)
           })
@@ -794,7 +794,7 @@ export default {
     getDashTicketsPerUsersDetail () {
       GetDashTicketsPerUsersDetail(this.params)
         .then(res => {
-          this.ticketsPerUsersDetail = res.data.filter((x,y)=> x.name != null)
+          this.ticketsPerUsersDetail = res.data.filter((x, y) => x.name != null)
         })
         .catch(error => {
           console.error(error)
@@ -838,7 +838,7 @@ export default {
       }
 
     }
-    this.ticketsUsersOptions ={ ...this.ticketsUsersOptions, theme }
+    this.ticketsUsersOptions = { ...this.ticketsUsersOptions, theme }
     this.ticketsQueueOptions = { ...this.ticketsQueueOptions, theme }
     this.ticketsChannelsOptions = { ...this.ticketsChannelsOptions, theme }
     this.ticketsEvolutionChannelsOptions = { ...this.ticketsEvolutionChannelsOptions, theme }
