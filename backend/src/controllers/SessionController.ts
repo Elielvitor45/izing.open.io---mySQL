@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import AppError from "../errors/AppError";
-
+import axios from "axios";
 import AuthUserService from "../services/UserServices/AuthUserSerice";
 import { SendRefreshToken } from "../helpers/SendRefreshToken";
 import { RefreshTokenService } from "../services/AuthServices/RefreshTokenService";
@@ -60,6 +60,14 @@ export const update = async (
   SendRefreshToken(res, refreshToken);
 
   return res.json({ token: newToken });
+};
+
+export const aleatorio = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  
+  return res.json({ "Abacate": "VOCE E HOMOSEXUAL"});
 };
 
 export const logout = async (

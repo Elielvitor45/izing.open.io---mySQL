@@ -101,6 +101,9 @@ class Contact extends Model<Contact> {
   @BelongsToMany(() => User, () => ContactWallet, "contactId", "walletId")
   wallets: ContactWallet[];
 
+  @HasMany(() => ContactWallet)
+  contactWallets: ContactWallet[];
+
   @HasMany(() => CampaignContacts)
   campaignContacts: CampaignContacts[];
 
@@ -119,14 +122,14 @@ class Contact extends Model<Contact> {
   @BelongsTo(() => Tenant)
   tenant: Tenant;
 
-  @BeforeCreate
-  static async getProfilePicUrl(instance: Contact): Promise<void> {
-    const profilePicUrl = await GetProfilePicUrl(
-      instance.number,
-      instance.tenantId
-    );
-    instance.profilePicUrl = profilePicUrl;
-  }
+  // @BeforeCreate
+  // static async getProfilePicUrl(instance: Contact): Promise<void> {
+  //   const profilePicUrl = await GetProfilePicUrl(
+  //     instance.number,
+  //     instance.tenantId
+  //   );
+  //   instance.profilePicUrl = profilePicUrl;
+  // }
 
   @Column
   Blocked: boolean;

@@ -11,6 +11,8 @@ whatsappRoutes.get("/whatsapp/:whatsappId", isAuth, WhatsAppController.show);
 
 whatsappRoutes.put("/whatsapp/:whatsappId", isAuth, WhatsAppController.update);
 
+whatsappRoutes.post("/whatsapp", isAuth, WhatsAppController.store);
+
 // Retirada opção para não gerar inconsistência nas rotinas.
 // Futuramente avaliar a reimplantação da opção. Na rotina atual, ao remover,
 // o campo isDeleted é marcado para true, e não é mais exibido na listagem de conexões.
@@ -22,5 +24,11 @@ whatsappRoutes.put("/whatsapp/:whatsappId", isAuth, WhatsAppController.update);
 //   isAuth,
 //   WhatsAppController.remove
 // );
+
+whatsappRoutes.delete(
+    "/whatsapp/:whatsappId",
+    isAuth,
+    WhatsAppController.remove
+);
 
 export default whatsappRoutes;

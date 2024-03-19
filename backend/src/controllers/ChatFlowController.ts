@@ -5,9 +5,10 @@ import CreateChatFlowService from "../services/ChatFlowServices/CreateChatFlowSe
 import ListChatFlowService from "../services/ChatFlowServices/ListChatFlowService";
 import AppError from "../errors/AppError";
 import UpdateChatFlowService from "../services/ChatFlowServices/UpdateChatFlowService";
+import DeleteChatFlowService from "../services/ChatFlowServices/DeleteChatFlowService";
 // import UpdateAutoReplyService from "../services/AutoReplyServices/UpdateAutoReplyService";
 // import DeleteAutoReplyService from "../services/AutoReplyServices/DeleteAutoReplyService";
-
+// import DeleteChatFlowService from "../services/ChatFlowServices/DeleteChatFlowService";
 interface Line {
   connector: string;
   from: string;
@@ -99,6 +100,18 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
   const { tenantId } = req.user;
   const chatFlow = await ListChatFlowService({ tenantId });
   return res.status(200).json(chatFlow);
+};
+
+export const remove = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { chatFlowId } = req.params;
+  const { tenantId } = req.user;
+
+  await DeleteChatFlowService({ id: chatFlowId, tenantId });
+
+  return res.status(200).json({ message: "Flow deleted" });
 };
 
 export const update = async (

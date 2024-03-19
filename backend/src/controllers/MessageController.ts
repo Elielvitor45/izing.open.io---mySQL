@@ -53,8 +53,11 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
   // const wbotMessages = await wbotChat.fetchMessages({ limit: 100 });
   // const mf = messages.filter
   // console.log(wbotMessages);
-  SetTicketMessagesAsRead(ticket);
-
+  try {
+    SetTicketMessagesAsRead(ticket);
+  } catch (error) {
+    console.log("SetTicketMessagesAsRead", error);
+  }
   return res.json({ count, messages, messagesOffLine, ticket, hasMore });
 };
 
@@ -71,7 +74,6 @@ export const store = async (req: Request, res: Response): Promise<Response> => {
     console.log("try SetTicketMessagesAsRead",error)
   }
 
-  try {
     await CreateMessageSystemService({
       msg: messageData,
       tenantId,
@@ -83,9 +85,6 @@ export const store = async (req: Request, res: Response): Promise<Response> => {
       status: "pending",
       idFront: messageData.idFront
     });
-  } catch (error) {
-    console.log("try CreateMessageSystemService", error);
-  }
 
   return res.send();
 };

@@ -18,7 +18,7 @@ const InstaBotMessageListener = (instaBot: Session): void => {
     // não processar as mudanças de status
     if (ctx.message.op === "replace" && ctx.message_type === 1) return;
 
-    // evitar envio duplicato não processar os envios feito pelo sistema
+    // evitar envio duplicado não processar os envios feito pelo sistema
     if (instaBot?.accountLogin?.pk === ctx.message.user_id) return;
     // op = replace,
     // message_type = 1
@@ -40,7 +40,7 @@ const InstaBotMessageListener = (instaBot: Session): void => {
 
   instaBot.realtime.on("error", console.error);
   instaBot.realtime.on("close", () => console.error("RealtimeClient closed"));
-
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   instaBot.fbns.on("push", (data: any) => {
     // this.handleFbnsReceive(data)
     console.log("handleFbnsReceive", data);

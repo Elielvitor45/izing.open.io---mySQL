@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import { Client, LocalAuth, DefaultOptions } from "whatsapp-web.js";
 import path from "path";
 import { rm } from "fs/promises";
@@ -82,34 +83,41 @@ export const removeWbot = (whatsappId: number): void => {
   }
 };
 
-const checkMessages = async (wbot: Session, tenantId: number | string) => {
-  try {
-    const isConnectStatus = wbot && (await wbot.getState()) === "CONNECTED"; // getValue(`wbotStatus-${tenantId}`);
-    logger.info(
-      "wbot:checkMessages:status",
-      wbot.id,
-      tenantId,
-      isConnectStatus
-    );
+// const checkMessages = async (wbot: Session, tenantId: number | string) => {
+//   try {
+//     const isConnectStatus = wbot && (await wbot.getState()) === "CONNECTED"; // getValue(`wbotStatus-${tenantId}`);
+//     logger.info(
+//       "wbot:checkMessages:status",
+//       wbot.id,
+//       tenantId,
+//       isConnectStatus
+//     );
 
-    if (isConnectStatus) {
-      logger.info("wbot:connected:checkMessages", wbot, tenantId);
-      Queue.add("SendMessages", { sessionId: wbot.id, tenantId });
-    }
-  } catch (error) {
-    const strError = String(error);
-    // se a sessão tiver sido fechada, limpar a checagem de mensagens e bot
-    if (strError.indexOf("Session closed.") !== -1) {
-      logger.error(
-        `BOT Whatsapp desconectado. Tenant: ${tenantId}:: BOT ID: ${wbot.id}`
-      );
-      clearInterval(wbot.checkMessages);
-      removeWbot(wbot.id);
-      return;
-    }
-    logger.error(`ERROR: checkMessages Tenant: ${tenantId}::`, error);
-  }
-};
+//     if (isConnectStatus) {
+//       logger.info("wbot:connected:checkMessages", wbot, tenantId);
+//       Queue.add("SendMessages", { sessionId: wbot.id, tenantId });
+//     }
+//   } catch (error) {
+//     const strError = String(error);
+//     // se a sessão tiver sido fechada, limpar a checagem de mensagens e bot
+//     if (strError.indexOf("Session closed.") !== -1) {
+//       logger.error(
+//         `BOT Whatsapp desconectado. Tenant: ${tenantId}:: BOT ID: ${wbot.id}`
+//       );
+//       clearInterval(wbot.checkMessages);
+//       removeWbot(wbot.id);
+//       return;
+//     }
+//     logger.error(`ERROR: checkMessages Tenant: ${tenantId}::`, error);
+//   }
+// };
+
+const args: string[] = process.env.CHROME_ARGS
+  ? process.env.CHROME_ARGS.split(",")
+  : minimal_args;
+
+args.unshift(`--user-agent=${DefaultOptions.userAgent}`);
+
 
 export const initWbot = async (whatsapp: Whatsapp): Promise<Session> => {
   return new Promise((resolve, reject) => {
@@ -122,13 +130,30 @@ export const initWbot = async (whatsapp: Whatsapp): Promise<Session> => {
         sessionCfg = JSON.parse(whatsapp.session);
       }
 
+      // const wbot = new Client({
+      //   authStrategy: new LocalAuth({ clientId: `wbot-${whatsapp.id}` }),
+      //   puppeteer: {
+      //     // headless: false,
+      //     executablePath: process.env.CHROME_BIN || undefined,
+      //     args: [`--user-agent=${DefaultOptions.userAgent}`, ...minimal_args]
+      //   }
+      // }) as Session;
+
       const wbot = new Client({
         authStrategy: new LocalAuth({ clientId: `wbot-${whatsapp.id}` }),
+        takeoverOnConflict: true,
         puppeteer: {
           // headless: false,
           executablePath: process.env.CHROME_BIN || undefined,
-          args: [`--user-agent=${DefaultOptions.userAgent}`, ...minimal_args]
-        }
+          args
+        },
+        webVersion: process.env.WEB_VERSION || "2.2352.1",
+        webVersionCache: {
+          type: "remote",
+          remotePath:
+            "https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/{version}.html"
+        },
+        qrMaxRetries: 5
       }) as Session;
 
       wbot.id = whatsapp.id;
@@ -186,12 +211,18 @@ export const initWbot = async (whatsapp: Whatsapp): Promise<Session> => {
         logger.info(`Session: ${sessionName}-READY`);
 
         const info: any = wbot?.info;
+        const wbotVersion = await wbot.getWWebVersion();
+        const wbotBrowser = await wbot.pupBrowser?.version();
         await whatsapp.update({
           status: "CONNECTED",
           qrcode: "",
           retries: 0,
           number: wbot?.info?.wid?.user, // || wbot?.info?.me?.user,
-          phone: info?.phone || {}
+          phone: {
+            ...(info || {}),
+            wbotVersion,
+            wbotBrowser
+          }
         });
 
         io.emit(`${tenantId}:whatsappSession`, {
@@ -215,12 +246,6 @@ export const initWbot = async (whatsapp: Whatsapp): Promise<Session> => {
         resolve(wbot);
       });
 
-      wbot.checkMessages = setInterval(
-        checkMessages,
-        +(process.env.CHECK_INTERVAL || 5000),
-        wbot,
-        tenantId
-      );
       // WhatsappConsumer(tenantId);
     } catch (err) {
       logger.error(`initWbot error | Error: ${err}`);

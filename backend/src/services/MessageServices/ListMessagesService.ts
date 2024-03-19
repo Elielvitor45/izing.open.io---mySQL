@@ -35,7 +35,7 @@ const ListMessagesService = async ({
   const offset = limit * (+pageNumber - 1);
 
   const { count, rows: messages } = await Message.findAndCountAll({
-    where: { ticketId },
+    // where: { ticketId },
     limit,
     include: [
       "contact",
@@ -43,10 +43,21 @@ const ListMessagesService = async ({
         model: Message,
         as: "quotedMsg",
         include: ["contact"]
+      },
+      {
+        model: Ticket,
+        where: {queueId: ticket.queueId, contactId: ticket.contactId, whatsappId: ticket.whatsappId},
+        required: true
       }
     ],
     offset,
+    // logging: console.log,
     order: [["createdAt", "DESC"]]
+    // order: [
+    //   Sequelize.literal(
+    //     'coalesce(to_timestamp("Message"."timestamp") , "Message"."createdAt") desc'
+    //   )
+    // ]
   });
 
   let messagesOffLine: MessagesOffLine[] = [];

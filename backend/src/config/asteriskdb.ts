@@ -1,4 +1,4 @@
-require("../bootstrap");
+require("../app/config-env");
 
 module.exports = {
   define: {

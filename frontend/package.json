@@ -26,6 +26,7 @@
     "qrcode.vue": "^1.7.0",
     "quasar": "^1.22.2",
     "socket.io-client": "^3.1.2",
+    "url": "^0.11.3",
     "v-emoji-picker": "^2.3.1",
     "vdata-parser": "^0.1.5",
     "vue": "^2.7.16",

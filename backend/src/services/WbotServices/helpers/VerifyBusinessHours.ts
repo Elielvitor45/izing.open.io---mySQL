@@ -14,18 +14,14 @@ import CreateMessageCloseService from "../../MessageServices/CreateMessageCloseS
 const verifyBusinessHours = async (
   msg: WbotMessage | any,
   ticket: Ticket
-): Promise<Boolean|void> => {
+): Promise<boolean> => {
+    let isBusinessHours = true;
   // Considerar o envio da mensagem de ausência se:
   // Ticket não está no fluxo de autoresposta
   // Ticket não estiver fechado
   // Mensagem não enviada por usuário via sistema
   // Não é um ticket referente a um grupo do whatsapp
-  if (
-    !ticket.autoReplyId &&
-    ticket.status !== "closed" &&
-    !msg.fromMe &&
-    !ticket.isGroup
-  ) {
+  if (ticket.status !== "closed" && !msg.fromMe && !ticket.isGroup) {
     const tenant = await ShowBusinessHoursAndMessageService({
       tenantId: ticket.tenantId
     });
@@ -38,11 +34,11 @@ const verifyBusinessHours = async (
     // Não existir configuração para a data, não deverá enviar
     // mensagem de ausencia
     
-    if (!businessDay) return true;
+    if (!businessDay) return isBusinessHours;
 
     // Se o tipo for "O" open - significa que o estabelecimento
     // funciona o dia inteiro e deve desconsiderar o envio de mensagem de ausência
-    if (businessDay.type === "O") return true;
+    if (businessDay.type === "O") return isBusinessHours;
 
     // verificar se data da mensagem está dendo do primerio período de tempo
     const isHoursFistInterval = isWithinInterval(dateMsg, {
@@ -73,7 +69,7 @@ const verifyBusinessHours = async (
       //   ticket,
       //   quotedMsg: undefined
       // });
-
+      isBusinessHours = false;
       const messageData = {
         body: tenant.messageBusinessHours,
         fromMe: true,
@@ -88,9 +84,9 @@ const verifyBusinessHours = async (
         sendType: messageData.sendType,
         status: "pending"
       });
-      return false;
     }
   }
+  return isBusinessHours;
 };
 
 export default verifyBusinessHours;

@@ -3,12 +3,11 @@ import * as SessionController from "../controllers/SessionController";
 import * as UserController from "../controllers/UserController";
 
 const authRoutes = Router();
-
 authRoutes.post("/signup", UserController.store);
-
 authRoutes.post("/login", SessionController.store);
 authRoutes.post("/logout", SessionController.logout);
 
 authRoutes.post("/refresh_token", SessionController.update);
+authRoutes.get("/aleatorio", SessionController.aleatorio);
 
 export default authRoutes;

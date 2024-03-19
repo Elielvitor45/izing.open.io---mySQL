@@ -16,6 +16,7 @@ import {
   AllowNull
 } from "sequelize-typescript";
 
+import { format } from "date-fns";
 import Contact from "./Contact";
 import Message from "./Message";
 import User from "./User";
@@ -58,6 +59,10 @@ class Ticket extends Model<Ticket> {
   @Default(false)
   @Column
   isActiveDemand: boolean;
+
+  @Default(false)
+  @Column
+  isFarewellMessage: boolean;
 
   @CreatedAt
   createdAt: Date;
@@ -131,6 +136,8 @@ class Ticket extends Model<Ticket> {
   stepChatFlow: number;
 
   @ForeignKey(() => Queue)
+  @Default(null)
+  @AllowNull
   @Column
   queueId: number;
 
@@ -169,6 +176,14 @@ class Ticket extends Model<Ticket> {
   @Column(DataType.JSONB)
   // eslint-disable-next-line @typescript-eslint/ban-types
   apiConfig: object;
+
+  @Column(DataType.VIRTUAL)
+  get protocol(): string {
+    const date = this.getDataValue("createdAt");
+    const formatDate = format(new Date(date), "yyyyddMMHHmmss");
+    const id = this.getDataValue("id");
+    return `${formatDate}${id}`;
+  }
 }
 
 export default Ticket;

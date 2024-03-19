@@ -1,9 +1,7 @@
 // import AppError from "../../errors/AppError";
 import { parseISO, setHours, setMinutes } from "date-fns";
 import { logger } from "../../utils/logger";
-
 import Campaign from "../../models/Campaign";
-
 interface CampaignRequest {
   name: string;
   start: string;
@@ -13,15 +11,14 @@ interface CampaignRequest {
   mediaUrl?: string;
   mediaType?: string;
   userId: string;
+  delay: string;
   sessionId: string;
   tenantId: string;
 }
-
 interface Request {
   campaign: CampaignRequest;
   medias?: Express.Multer.File[];
 }
-
 const CreateCampaignService = async ({
   campaign,
   medias
@@ -44,19 +41,18 @@ const CreateCampaignService = async ({
   }
   const data: any = {
     name: campaign.name,
-    start: setHours(setMinutes(parseISO(campaign.start), 0), 8),
+    start: parseISO(campaign.start),
     message1: campaign.message1,
     message2: campaign.message2,
     message3: campaign.message3,
     userId: campaign.userId,
+    delay: campaign.delay,
     mediaUrl: mediaData?.filename,
     mediaType: mediaData?.mimetype.substr(0, mediaData.mimetype.indexOf("/")),
     sessionId: campaign.sessionId,
     tenantId: campaign.tenantId
   };
   const campaignData = await Campaign.create(data);
-
   return campaignData;
 };
-
 export default CreateCampaignService;

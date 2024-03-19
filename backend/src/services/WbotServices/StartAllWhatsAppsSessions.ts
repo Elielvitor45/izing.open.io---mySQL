@@ -35,6 +35,7 @@ export const StartAllWhatsAppsSessions = async (): Promise<void> => {
       isActive: true
     }
   });
+  console.log("ABACATEMASTERRRRRR")
   const whatsappSessions = whatsapps.filter(w => w.type === "whatsapp");
   const telegramSessions = whatsapps.filter(
     w => w.type === "telegram" && !!w.tokenTelegram

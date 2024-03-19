@@ -5,6 +5,8 @@ interface Request {
   startDate: string;
   endDate: string;
   tenantId: string | number;
+  userId: string | number;
+  userProfile: string | number;
 }
 
 // const query = `

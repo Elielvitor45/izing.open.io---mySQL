@@ -46,6 +46,10 @@ const handleRealtimeReceive = async (
     channel: "instagram"
   });
 
+  if (ticket?.isFarewellMessage) {
+    return;
+  }
+  
   if (ctx.message.item_type !== "text") {
     await VerifyMediaMessage(ctx, fromMe, ticket, contact);
   } else {

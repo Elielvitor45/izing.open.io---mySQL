@@ -6,10 +6,6 @@ import Ticket from "../../models/Ticket";
 import User from "../../models/User";
 import socketEmit from "../../helpers/socketEmit";
 import CreateLogTicketService from "./CreateLogTicketService";
-import GetTicketWbot from "../../helpers/GetTicketWbot";
-import { generateMessage } from "../../utils/mustache";
-import Whatsapp from "../../models/Whatsapp";
-import UsersQueues from "../../models/UsersQueues";
 
 interface TicketData {
   status?: string;
@@ -39,15 +35,8 @@ const UpdateTicketService = async ({
   isTransference,
   userIdRequest
 }: Request): Promise<Response> => {
-  var { status, userId, tenantId, queueId } = ticketData;
-  if(userId && !queueId){
-    const queueID = await UsersQueues.findOne({
-      where: {
-        userId: userId
-      }
-    });
-    queueId = queueID?.queueId;
-  }
+  const { status, userId, tenantId, queueId } = ticketData;
+
   const ticket = await Ticket.findOne({
     where: { id: ticketId, tenantId },
     include: [
@@ -67,6 +56,10 @@ const UpdateTicketService = async ({
         model: User,
         as: "user",
         attributes: ["id", "name"]
+      },
+      {
+        association: "whatsapp",
+        attributes: ["id", "name"]
       }
     ]
   });
@@ -77,8 +70,10 @@ const UpdateTicketService = async ({
 
   await SetTicketMessagesAsRead(ticket);
 
-  const wbot = await GetTicketWbot(ticket);
-  
+  // Variavel para notificar usuário de novo contato como pendente
+  const toPending =
+    ticket.status !== "pending" && ticketData.status === "pending";
+
   const oldStatus = ticket.status;
   const oldUserId = ticket.user?.id;
 
@@ -88,14 +83,12 @@ const UpdateTicketService = async ({
 
   // verificar se o front envia close e substituir por closed
   const statusData = status === "close" ? "closed" : status;
+
   const data: any = {
     status: statusData,
     queueId,
     userId
   };
-  const whatsapp = await Whatsapp.findOne({
-    where: { id: ticket.whatsappId, tenantId }
-  });
 
   // se atendimento for encerrado, informar data da finalização
   if (statusData === "closed") {
@@ -140,58 +133,35 @@ const UpdateTicketService = async ({
 
   if (isTransference) {
     // tranferiu o atendimento
-    if (userId && !queueId) {
+    await CreateLogTicketService({
+      userId: userIdRequest,
+      ticketId,
+      type: "transfered"
+    });
+    // recebeu o atendimento tansferido
+    if (userId) {
       await CreateLogTicketService({
-        userId: userIdRequest,
+        userId,
         ticketId,
-        type: "transfered"
+        type: "receivedTransfer"
       });
-      // recebeu o atendimento tansferido
-      if (userId) {
-        await CreateLogTicketService({
-          userId,
-          ticketId,
-          type: "receivedTransfer"
-        });
-      }
-    } else if (!userId && queueId) {
-        await CreateLogTicketService({
-          queueId: queueId,
-          ticketId,
-          type: "transfered"
-        });
-        // recebeu o atendimento tansferido
-        if (queueId) {
-          await CreateLogTicketService({
-            queueId,
-            ticketId,
-            type: "receivedTransfer"
-          });
-        }
     }
   }
+
   await ticket.reload();
 
   if (isTransference) {
     await ticket.setDataValue("isTransference", true);
   }
 
-  //enviar mensagem de saudação ao iniciar o atendimento
-  if (statusData === "open") {
-    if (isTransference && userId) {
-      if (whatsapp?.greetingMessage) {
-        await wbot.sendMessage(`${ticket.contact.number}@${ticket.isGroup ? "g" : "c"}.us`,
-          generateMessage(`${whatsapp?.greetingMessage}`, ticket),
-        )
-      }
-    } else if (!isTransference) {
-      if (whatsapp?.greetingMessage) {
-        await wbot.sendMessage(`${ticket.contact.number}@${ticket.isGroup ? "g" : "c"}.us`,
-          generateMessage(`${whatsapp?.greetingMessage}`, ticket),
-        )
-      }
-    }
+  if (toPending) {
+    socketEmit({
+      tenantId,
+      type: "notification:new",
+      payload: ticket
+    });
   }
+
   socketEmit({
     tenantId,
     type: "ticket:update",

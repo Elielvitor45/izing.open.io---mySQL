@@ -149,13 +149,20 @@ const isQueueDefine = async (
       });
     }
     if (flowConfig?.configurations?.autoDistributeTickets) {
-      DefinedUserBotService(
+      await DefinedUserBotService(
         ticket,
         stepCondition.queueId,
         ticket.tenantId,
         flowConfig?.configurations?.autoDistributeTickets
       );
+      ticket.reload();
     }
+
+    socketEmit({
+      tenantId: ticket.tenantId,
+      type: "ticket:update",
+      payload: ticket
+    });
   }
 };
 
@@ -174,6 +181,14 @@ const isUserDefine = async (
       botRetries: 0,
       lastInteractionBot: new Date()
     });
+    ticket.reload();
+
+    socketEmit({
+      tenantId: ticket.tenantId,
+      type: "ticket:update",
+      payload: ticket
+    });
+
     await CreateLogTicketService({
       userId: stepCondition.userIdDestination,
       ticketId: ticket.id,
@@ -275,13 +290,12 @@ const isRetriesLimit = async (
       });
     }
     ticket.update(updatedValues);
-    await CreateLogTicketService(logsRetry);
     socketEmit({
       tenantId: ticket.tenantId,
       type: "ticket:update",
       payload: ticket
     });
-
+    await CreateLogTicketService(logsRetry);
     // enviar mensagem de boas vindas à fila ou usuário
     await sendWelcomeMessage(ticket, flowConfig);
     return true;
