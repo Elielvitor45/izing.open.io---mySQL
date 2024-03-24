@@ -62,6 +62,9 @@ export default {
       default: () => {
         return { id: null }
       }
+    },
+    queueData: {
+      type: Object
     }
   },
   data () {
@@ -95,6 +98,24 @@ export default {
     },
     async handleFila () {
       try {
+        for (let i = 0; i < this.queueData.length; i++) {
+          if (this.fila.queue === this.queueData[i].queue) {
+            this.$q.notify({
+              type: 'info',
+              progress: true,
+              position: 'top',
+              textColor: 'black',
+              message: 'Não é possível criar uma fila já existente!',
+              color: 'red',
+              actions: [{
+                icon: 'close',
+                round: true,
+                color: 'white'
+              }]
+            })
+            return
+          }
+        }
         this.loading = true
         if (this.fila.id) {
           const { data } = await AlterarFila(this.fila)
@@ -114,6 +135,7 @@ export default {
         } else {
           const { data } = await CriarFila(this.fila)
           this.$emit('modal-fila:criada', data)
+
           this.$q.notify({
             type: 'positive',
             progress: true,
@@ -133,6 +155,9 @@ export default {
         this.$notificarErro('Ocorreu um erro!', error)
       }
     }
+  },
+  created () {
+    console.log(this.queueData)
   }
 
 }

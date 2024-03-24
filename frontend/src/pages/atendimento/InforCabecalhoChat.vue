@@ -117,7 +117,7 @@
               </q-tooltip>
             </q-btn>
             <q-btn
-              @click="listarUsuarios"
+              @click="carregar"
               flat
               color="primary"
               class="bg-padrao btn-rounded"
@@ -126,6 +126,18 @@
               <q-icon name="mdi-transfer" />
               <q-tooltip content-class="bg-primary text-bold">
                 Transferir
+              </q-tooltip>
+            </q-btn>
+            <q-btn
+              @click="associarPas"
+              flat
+              color="brown"
+              class="bg-padrao btn-rounded"
+              :disable="cticket.status == 'closed'"
+            >
+              <q-icon name="key" />
+              <q-tooltip content-class="bg-brown text-bold">
+                Associar PAS
               </q-tooltip>
             </q-btn>
           </template>
@@ -177,7 +189,7 @@
               </q-fab-action>
 
               <q-fab-action
-                @click="listarUsuarios"
+                @click="carregar"
                 flat
                 color="primary"
                 class="bg-padrao q-pa-xs "
@@ -259,6 +271,43 @@
     </q-header>
 
     <q-dialog
+      v-model="modalAssociarPas"
+      @hide="modalAssociarPas=false"
+      persistent
+    >
+      <q-card
+        class="q-pa-md"
+        style="width: 500px"
+      >
+        <q-card-section>
+          <div class="text-h6">Insira o PAS:</div>
+        </q-card-section>
+        <c-input
+          class="col-6"
+          outlined
+          label="PAS"
+          v-model="codigoPas"
+        />
+        <q-card-actions align="right">
+          <q-btn
+            flat
+            label="Sair"
+            color="negative"
+            v-close-popup
+            class="q-mr-lg"
+            @click="limparCampos"
+          />
+          <q-btn
+            flat
+            label="Salvar"
+            color="primary"
+            @click="associarPasSalvar(codigoPas)"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <q-dialog
       v-model="modalTransferirTicket"
       @hide="modalTransferirTicket=false"
       persistent
@@ -268,7 +317,7 @@
         style="width: 500px"
       >
         <q-card-section>
-          <div class="text-h6">Selecione o destino:</div>
+          <div class="text-h6">Selecione o destino(Fila ou Usuario):</div>
         </q-card-section>
         <q-card-section>
           <q-select
@@ -283,6 +332,19 @@
             label="Usuário destino"
           />
         </q-card-section>
+        <q-card-section>
+          <q-select
+            square
+            outlined
+            v-model="filaSelecionado"
+            :options="filas"
+            emit-value
+            map-options
+            option-value="id"
+            option-label="queue"
+            label="Fila destino"
+          />
+        </q-card-section>
         <q-card-actions align="right">
           <q-btn
             flat
@@ -290,6 +352,7 @@
             color="negative"
             v-close-popup
             class="q-mr-lg"
+            @click="limparCampos"
           />
           <q-btn
             flat
@@ -307,14 +370,31 @@
 const userId = +localStorage.getItem('userId')
 import { mapGetters } from 'vuex'
 import { ListarUsuarios } from 'src/service/user'
-import { AtualizarTicket } from 'src/service/tickets'
+import { AtualizarTicket, AtualizarPas } from 'src/service/tickets'
+import { ListarFilas } from 'src/service/filas'
 export default {
   name: 'InfoCabecalhoMensagens',
   data () {
     return {
+      modalAssociarPas: false,
       modalTransferirTicket: false,
       usuarioSelecionado: null,
-      usuarios: []
+      usuarios: [],
+      filaSelecionado: null,
+      filas: [],
+      codigoPas: ''
+    }
+  },
+  watch: {
+    filaSelecionado (val) {
+      if (val) {
+        this.usuarioSelecionado = null
+      }
+    },
+    usuarioSelecionado (val) {
+      if (val) {
+        this.filaSelecionado = null
+      }
     }
   },
   computed: {
@@ -327,7 +407,14 @@ export default {
         user: { name: '' }
       }
       return Object.keys(this.ticketFocado).includes('contact') ? this.ticketFocado : infoDefault
-    }
+    } //,
+    // cqueue () {
+    //   const infoDefaultQueue = {
+    //     contact: { profilePicUrl: '', name: '' },
+    //     user: { name: '' }
+    //   }
+    //   return Object.keys(this.queueFocado).includes('queue') ? this.queueFocado : infoDefaultQueue
+    // }
   },
   methods: {
     Value (obj, prop) {
@@ -341,18 +428,97 @@ export default {
       try {
         const { data } = await ListarUsuarios()
         this.usuarios = data.users
-        this.modalTransferirTicket = true
       } catch (error) {
         console.error(error)
         this.$notificarErro('Problema ao carregar usuários', error)
       }
     },
+    async listarFilas () {
+      try {
+        const { data } = await ListarFilas()
+        this.filas = data
+      } catch (error) {
+        console.error(error)
+        this.$notificarErro('Problema ao carregar as filas', error)
+      }
+    },
+    async carregar () {
+      try {
+        Promise.all([
+          this.listarFilas(),
+          this.listarUsuarios()
+        ]
+        )
+        this.modalTransferirTicket = true
+      } catch (error) {
+        console.error(error)
+        this.$notificarErro('Problema ao carregar', error)
+      }
+    },
+    async associarPas () {
+      this.modalAssociarPas = true
+    },
+    async associarPasSalvar () {
+      // await AtualizarPas(this.codigoPas, this.ticketFocado.id)
+      // this.modalAssociarPas = false
+      try {
+        await AtualizarPas(this.codigoPas, this.ticketFocado.id)
+        this.$q.notify({
+          type: 'positive',
+          position: 'top',
+          message: 'Código PAS associado com sucesso!',
+          progress: true,
+          actions: [{
+            icon: 'close',
+            round: true,
+            color: 'white'
+          }]
+        })
+        this.modalAssociarPas = false
+      } catch (error) {
+        console.error(error)
+        this.$notificarErro('Problema ao carregar', error)
+      }
+    },
+    async limparCampos () {
+      this.filaSelecionado = undefined
+      this.usuarioSelecionado = undefined
+    },
     async confirmarTransferenciaTicket () {
-      if (!this.usuarioSelecionado) return
-      if (this.ticketFocado.userId === this.usuarioSelecionado) {
+      if (!this.usuarioSelecionado && !this.filaSelecionado) return
+
+      if (this.filaSelecionado && this.usuarioSelecionado) {
         this.$q.notify({
           type: 'info',
-          message: 'Ticket já pertece ao usuário selecionado.',
+          message: 'Não é possivel transferir com os campos de usuario e fila selecionados',
+          progress: true,
+          actions: [{
+            icon: 'close',
+            round: true,
+            color: 'white'
+          }]
+        })
+        return
+      }
+      if (this.usuarioSelecionado != undefined) {
+        if (this.ticketFocado.userId === this.usuarioSelecionado) {
+          this.$q.notify({
+            type: 'info',
+            message: 'Ticket já pertece ao usuário selecionado.',
+            progress: true,
+            actions: [{
+              icon: 'close',
+              round: true,
+              color: 'white'
+            }]
+          })
+          return
+        }
+      }
+      if (this.ticketFocado.queueId === this.filaSelecionado) {
+        this.$q.notify({
+          type: 'info',
+          message: 'Ticket já pertece a fila selecionada.',
           progress: true,
           actions: [{
             icon: 'close',
@@ -377,6 +543,7 @@ export default {
       }
       await AtualizarTicket(this.ticketFocado.id, {
         userId: this.usuarioSelecionado,
+        queueId: this.filaSelecionado,
         status: 'open',
         isTransference: 1
       })

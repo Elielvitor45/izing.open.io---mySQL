@@ -15,7 +15,9 @@
   "author": "lumardyelson@gmail.com",
   "license": "@izing.io",
   "dependencies": {
-    "quasar": "^2.14.0"
+    "@types/node": "^20.10.0",
+    "quasar": "^2.14.0",
+    "sharp": "^0.32.6"
   },
   "devDependencies": {
     "@commitlint/cli": "^16.0.1",

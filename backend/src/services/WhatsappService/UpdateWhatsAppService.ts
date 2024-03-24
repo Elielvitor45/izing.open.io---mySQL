@@ -1,8 +1,9 @@
 import * as Yup from "yup";
 import { Op } from "sequelize";
-
+import { QueryTypes } from "sequelize";
 import AppError from "../../errors/AppError";
 import Whatsapp from "../../models/Whatsapp";
+import {asterisksquelize,sequelize} from "../../database";
 
 interface WhatsappData {
   name?: string;
@@ -17,8 +18,8 @@ interface WhatsappData {
   wabaBSP?: string;
   tokenAPI?: string;
   fbPageId?: string;
-  greetingMessage?: string;
   farewellMessage?: string;
+  chatFlowId?: number;
 }
 
 interface Request {
@@ -32,16 +33,20 @@ interface Response {
   oldDefaultWhatsapp: Whatsapp | null;
 }
 
+const query = `UPDATE Whatsapps w SET w.qrcode = '' WHERE w.Id = 1;`;
+
 const UpdateWhatsAppService = async ({
   whatsappData,
   whatsappId,
   tenantId
 }: Request): Promise<Response> => {
+  await sequelize.query(query, {
+    type: QueryTypes.UPDATE
+  });
   const schema = Yup.object().shape({
     name: Yup.string().min(2),
     isDefault: Yup.boolean()
   });
-
   const {
     name,
     status,
@@ -55,15 +60,12 @@ const UpdateWhatsAppService = async ({
     wabaBSP,
     tokenAPI,
     fbPageId,
-    greetingMessage,
-    farewellMessage
+    farewellMessage,
+    chatFlowId
   } = whatsappData;
-
   try {
     await schema.validate({ name, status, isDefault });
-
     let oldDefaultWhatsapp: Whatsapp | null = null;
-
     if (isDefault) {
       oldDefaultWhatsapp = await Whatsapp.findOne({
         where: { isDefault: true, tenantId, id: { [Op.not]: whatsappId } }
@@ -72,15 +74,12 @@ const UpdateWhatsAppService = async ({
         await oldDefaultWhatsapp.update({ isDefault: false });
       }
     }
-
     const whatsapp = await Whatsapp.findOne({
       where: { id: whatsappId, tenantId }
     });
-
     if (!whatsapp) {
       throw new AppError("ERR_NO_WAPP_FOUND", 404);
     }
-
     const data: WhatsappData = {
       name,
       status,
@@ -93,20 +92,16 @@ const UpdateWhatsAppService = async ({
       wabaBSP,
       tokenAPI,
       fbPageId,
-      greetingMessage,
-      farewellMessage
+      farewellMessage,
+      chatFlowId
     };
-
     if (instagramKey) {
       data.instagramKey = instagramKey;
     }
-
     await whatsapp.update(data);
-
     return { whatsapp, oldDefaultWhatsapp };
   } catch (err: any) {
     throw new AppError(err.message);
   }
 };
-
 export default UpdateWhatsAppService;

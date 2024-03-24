@@ -677,7 +677,8 @@ export default {
       ],
       optionsSe: [
         { label: 'Qualquer resposta', value: 'US' },
-        { label: 'Respostas', value: 'R' }
+        { label: 'Respostas', value: 'R' },
+        { label: 'PAS', value: 'p' }
       ],
       // node 或 line
       type: 'node',

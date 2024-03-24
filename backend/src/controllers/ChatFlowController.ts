@@ -5,9 +5,10 @@ import CreateChatFlowService from "../services/ChatFlowServices/CreateChatFlowSe
 import ListChatFlowService from "../services/ChatFlowServices/ListChatFlowService";
 import AppError from "../errors/AppError";
 import UpdateChatFlowService from "../services/ChatFlowServices/UpdateChatFlowService";
+import DeleteChatFlowService from "../services/ChatFlowServices/DeleteChatFlowService";
 // import UpdateAutoReplyService from "../services/AutoReplyServices/UpdateAutoReplyService";
 // import DeleteAutoReplyService from "../services/AutoReplyServices/DeleteAutoReplyService";
-
+// import DeleteChatFlowService from "../services/ChatFlowServices/DeleteChatFlowService";
 interface Line {
   connector: string;
   from: string;
@@ -57,6 +58,7 @@ interface ChatFlowData {
   name: string;
   userId: number;
   isActive: boolean;
+  isBlocked: boolean;
   celularTeste?: string;
   tenantId: number | string;
 }
@@ -71,6 +73,7 @@ export const store = async (req: Request, res: Response): Promise<Response> => {
     flow: { ...req.body },
     name: req.body.name,
     isActive: true,
+    isBlocked: false,
     userId: +req.user.id,
     tenantId
   };
@@ -99,6 +102,18 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
   return res.status(200).json(chatFlow);
 };
 
+export const remove = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { chatFlowId } = req.params;
+  const { tenantId } = req.user;
+
+  await DeleteChatFlowService({ id: chatFlowId, tenantId });
+
+  return res.status(200).json({ message: "Flow deleted" });
+};
+
 export const update = async (
   req: Request,
   res: Response
@@ -112,6 +127,7 @@ export const update = async (
     flow: { ...req.body },
     name: req.body.name,
     isActive: req.body.isReactive,
+    isBlocked: req.body.isBlocked,
     userId: +req.user.id,
     tenantId
   };

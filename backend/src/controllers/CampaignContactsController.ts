@@ -30,7 +30,6 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
   const tags = await ListCampaignContactsService({
     campaignId,
     tenantId
-    // eslint-disable-next-line eqeqeq
   });
   return res.status(200).json(tags);
 };

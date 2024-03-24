@@ -1,9 +1,9 @@
 <template>
   <q-dialog
+    persistent
     @show="fetchContact"
     @hide="$emit('update:modalContato', false)"
     :value="modalContato"
-    persistent
   >
     <q-card
       class="q-pa-lg"
@@ -32,12 +32,13 @@
           v-model="contato.number"
           :validator="$v.contato.number"
           @blur="$v.contato.number.$touch"
-          mask="(##) ##### - ####"
+          mask="(##) ########"
           placeholder="(DDD) 99999 - 9999"
           fill-mask
           unmasked-value
-          hint="Número do celular deverá conter 9 dígitos e ser precedido do DDD. "
+          hint="Número do contato deverá conter 8 dígitos e ser precedido do DDD. "
           label="Número"
+          :readonly="this.ticketPendingOrOpen"
         />
         <c-input
           class="col-12"
@@ -51,44 +52,18 @@
       <q-card-section class="q-pa-sm q-pl-md text-bold">
         Informações adicionais
       </q-card-section>
-      <q-card-section class="q-pa-sm q-pl-md row q-col-gutter-md justify-center">
-        <template v-for="(extraInfo, index) in contato.extraInfo">
-          <div
-            :key="index"
-            class="col-12 row justify-center q-col-gutter-sm"
-          >
-            <q-input
-              class="col-6"
-              outlined
-              v-model="extraInfo.name"
-              label="Descrição"
-            />
-            <q-input
-              class="col-5"
-              outlined
-              label="Informação"
-              v-model="extraInfo.value"
-            />
-            <div class="col q-pt-md">
-              <q-btn
-                :key="index"
-                icon="delete"
-                round
-                flat
-                color="negative"
-                @click="removeExtraInfo(index)"
-              />
-            </div>
-          </div>
-        </template>
-        <div class="col-6">
-          <q-btn
-            class="full-width"
-            color="primary"
-            outline
-            label="Adicionar Informação"
-            @click="contato.extraInfo.push({name: null, value: null})"
-          />
+      <q-card-section class="q-pa-sm q-pl-md text-bold">
+        <div v-for="(extraInfo, index) in contato.extraInfo" :key="index">
+          <q-input
+          class="col-6"
+          outlined
+          cols
+          counter
+          v-model="extraInfo.value"
+          label="Descrição"
+          type="textarea"
+          maxlength="1000"
+        />
         </div>
       </q-card-section>
       <q-card-actions
@@ -101,6 +76,7 @@
           color="negative"
           v-close-popup
           class="q-px-md "
+          @click="removeContact"
         />
         <q-btn
           class="q-ml-lg q-px-md"
@@ -108,12 +84,12 @@
           label="Salvar"
           color="primary"
           @click="saveContact"
+          :disable="disableButton"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
-
 <script>
 import { required, email, minLength, maxLength } from 'vuelidate/lib/validators'
 import { ObterContato, CriarContato, EditarContato } from 'src/service/contatos'
@@ -127,6 +103,10 @@ export default {
     contactId: {
       type: Number,
       default: null
+    },
+    ticketPendingOrOpen: {
+      type: Boolean,
+      default: false
     }
   },
   data () {
@@ -135,8 +115,12 @@ export default {
         name: null,
         number: null,
         email: '',
-        extraInfo: []
-      }
+        extraInfo: [{
+          name: '',
+          value: ''
+        }]
+      },
+      disableButton: false
     }
   },
   validations: {
@@ -148,12 +132,17 @@ export default {
   },
   methods: {
     async fetchContact () {
+      console.log(this.ticketPendingOrOpen)
       if (!this.contactId) return
       try {
         const { data } = await ObterContato(this.contactId)
         this.contato = data
+        console.log(data)
         if (data.number.substring(0, 2) === '55') {
           this.contato.number = data.number.substring(2)
+        }
+        if (!data.extraInfo.length > 0) {
+          this.contato.extraInfo.push({ name: '', value: ' ' })
         }
       } catch (error) {
         console.error(error)
@@ -164,6 +153,17 @@ export default {
       const newData = { ...this.contato }
       newData.extraInfo.splice(index, 1)
       this.contato = { ...newData }
+    },
+    async removeContact () {
+      this.contato = {
+        name: null,
+        namber: null,
+        email: '',
+        extraInfo: [{
+          name: null,
+          value: null
+        }]
+      }
     },
     async saveContact () {
       this.$v.contato.$touch()
@@ -180,13 +180,15 @@ export default {
           }]
         })
       }
-
-      const contato = {
+      var contato = {
         ...this.contato,
         number: '55' + this.contato.number // inserir o DDI do brasil para consultar o número
       }
-
+      if (this.contato.extraInfo.name === null) {
+        this.contato.extraInfo.name = ''
+      }
       try {
+        this.disableButton = true
         if (this.contactId) {
           const { data } = await EditarContato(this.contactId, contato)
           this.$emit('contatoModal:contato-editado', data)
@@ -202,6 +204,7 @@ export default {
               color: 'white'
             }]
           })
+          this.disableButton = false
         } else {
           const { data } = await CriarContato(contato)
           this.$q.notify({
@@ -216,12 +219,20 @@ export default {
             }]
           })
           this.$emit('contatoModal:contato-criado', data)
+          this.disableButton = false
         }
+        this.disableButton = false
         this.$emit('update:modalContato', false)
       } catch (error) {
         console.error(error)
+        if (error.data.error === 'ERR_WAPP_EQUAL_CONTACT_USER') {
+          this.$notificarErro('O numero do contato não pode ser igual ao numero do Whatsapp conectado')
+          this.disableButton = false
+        }
+        this.disableButton = false
         this.$notificarErro('Ocorreu um erro ao criar o contato', error)
       }
+      this.removeContact()
     }
 
   },

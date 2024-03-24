@@ -162,6 +162,7 @@ export default {
       data: null,
       bl_sintetico: false,
       dadosResumo: [],
+      Verify: false,
       columns: [
         { name: 'name', label: 'Nome', field: 'name', align: 'left', style: 'width: 300px', format: v => !v ? 'Não Informado' : v },
         { name: 'email', label: 'E-Mail', field: 'email', align: 'left', style: 'width: 300px', format: v => !v ? 'Não Informado' : v },
@@ -189,8 +190,30 @@ export default {
           return a
         }, {})
     },
+    ErrorMessage (message) {
+      return this.$q.notify({
+        type: 'negative',
+        progress: true,
+        position: 'top',
+        message: message,
+        actions: [{
+          icon: 'close',
+          round: true,
+          color: 'white'
+        }]
+      })
+    },
     printReport (idElemento) {
-      this.imprimir = !this.imprimir
+      if (this.Verify) {
+        this.imprimir = !this.imprimir
+      } else {
+        this.ErrorMessage('Relatorio Vazio')
+      }
+    },
+    async dataVerify () {
+      if (this.pesquisa.startDate > this.pesquisa.endDate) {
+        this.pesquisa.endDate = this.pesquisa.startDate
+      }
     },
     exportTable () {
       const json = XLSX.utils.table_to_sheet(
@@ -206,11 +229,21 @@ export default {
       }
       const wb = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb, json, 'Relatório Atendimentos')
-      XLSX.writeFile(wb, 'Resumo Atendimentos.xlsx')
+      if (this.Verify) {
+        XLSX.writeFile(wb, 'Resumo Atendimentos.xlsx')
+      } else {
+        this.ErrorMessage('Relatorio Vazio')
+      }
     },
     async gerarRelatorio () {
+      this.dataVerify()
       const { data } = await RelatorioResumoAtendimentosUsuarios(this.pesquisa)
       this.dadosResumo = data
+      if (this.dadosResumo.length > 0) {
+        this.Verify = true
+      } else {
+        this.Verify = false
+      }
     }
   },
   async mounted () {

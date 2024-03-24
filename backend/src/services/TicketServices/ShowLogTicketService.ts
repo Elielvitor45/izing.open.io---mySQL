@@ -1,6 +1,7 @@
 import LogTicket from "../../models/LogTicket";
 import User from "../../models/User";
 import Queue from "../../models/Queue";
+import Ticket from "../../models/Ticket";
 
 interface Request {
   ticketId: string | number;
@@ -23,11 +24,15 @@ const ShowLogTicketService = async ({
         model: Queue,
         as: "queue",
         attributes: ["id", "queue"]
+      },
+      {
+        model: Ticket,
+        as: "ticket",
+        attributes: ["codigoPas"]
       }
     ],
     order: [["createdAt", "DESC"]]
   });
-
   return logs;
 };
 

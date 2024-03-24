@@ -15,7 +15,7 @@
 
           <q-card-section class="text-primary text-center">
             <q-img
-              src="/izing-logo_5_transparent.png"
+              src="/1631350163720.jpg"
               spinner-color="white"
               style="height: 110px; max-width: 300px"
               class="q-mb-lg q-px-md"

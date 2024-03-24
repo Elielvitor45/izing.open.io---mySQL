@@ -98,6 +98,7 @@ export const initIO = (httpServer: Server): SocketIO => {
     }
 
     socket.on("disconnect", (reason: any) => {
+      console.log(`SOCKET Client disconnected , ${tenantId}, ${reason}`)
       logger.info({
         message: `SOCKET Client disconnected , ${tenantId}, ${reason}`
       });

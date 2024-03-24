@@ -459,7 +459,7 @@
               bordered
               flat
               :key="ticketFocado.id + $uuid()">
-              <q-card-section class="text-bold q-pb-none">
+              <q-card-section class="text-bold q-pb-none" style="display: flex; flex-direction: column; padding: 8px;">
                 Mensagens Agendadas
                 <q-separator />
               </q-card-section>
@@ -467,26 +467,28 @@
                 <template v-if="ticketFocado.scheduledMessages">
                   <q-list>
                     <q-item v-for="(message, idx) in ticketFocado.scheduledMessages"
-                      :key="idx"
-                      clickable>
-                      <q-item-section>
-                        <q-item-label caption>
-                          <b>Agendado para:</b> {{ $formatarData(message.scheduleDate, 'dd/MM/yyyy HH:mm') }}
-                          <q-btn flat
-                            round
-                            dense
-                            icon="mdi-trash-can-outline"
-                            class="absolute-top-right q-mr-sm"
-                            size="sm"
-                            @click="deletarMensagem(message)" />
-                        </q-item-label>
-                        <q-item-label caption
-                          lines="2"> <b>Msg:</b> {{ message.mediaName || message.body }}
-                        </q-item-label>
-                      </q-item-section>
-                      <q-tooltip :delay="500">
-                        <MensagemChat :mensagens="[message]" />
-                      </q-tooltip>
+                        :key="idx"
+                        clickable
+                        v-show="!message?.isDeleted"
+                        >
+                          <q-item-section>
+                          <q-item-label caption>
+                            <b>Agendado para:</b> {{ $formatarData(message.scheduleDate, 'dd/MM/yyyy HH:mm') }}
+                            <q-btn flat
+                              round
+                              dense
+                              icon="mdi-trash-can-outline"
+                              class="absolute-top-right q-mr-sm"
+                              size="sm"
+                              @click="(deletarMensagem(message, ticketFocado, idx))" />
+                          </q-item-label>
+                          <q-item-label caption
+                            lines="2"> <b>Msg:</b> {{ message.mediaName || message.body }}
+                          </q-item-label>
+                        </q-item-section>
+                        <q-tooltip :delay="500">
+                          <MensagemChat :mensagens="[message]" />
+                        </q-tooltip>
                     </q-item>
                   </q-list>
                 </template>
@@ -511,7 +513,6 @@
                     </q-item>
                   </q-list>
                 </template>
-
               </q-card-section>
             </q-card>
           </div>
@@ -520,6 +521,7 @@
 
       <ModalNovoTicket :modalNovoTicket.sync="modalNovoTicket" />
       <ContatoModal :contactId="selectedContactId"
+        :ticketPendingOrOpen="this.checkStatus"
         :modalContato.sync="modalContato"
         @contatoModal:contato-editado="contatoEditado" />
 
@@ -544,7 +546,7 @@
             </div>
           </q-card-section>
           <q-card-section class="">
-            <q-scroll-area style="height: calc(100vh - 200px);"
+            <q-scroll-area style="height: calc(100vh - 525px);"
               class="full-width">
               <q-timeline color="black"
                 style="width: 360px"
@@ -566,10 +568,25 @@
                 </template>
               </q-timeline>
             </q-scroll-area>
+            <div style="padding-top:50px;">Últimas ligações:  <div>
+              {{ logsCalls[0]?.idPas }}
+            </div>
+          </div>
+             <template v-for="item in logsCalls">
+                <div class="q-pa-md" :key="item">
+                        <div class="q-gutter-md">
+                            <div class="q-col-xs-12 q-col-md-6 q-col-lg-4">
+                              <q-icon name="phone_callback" size="30px" color="green" style="padding-right:20px"/>
+                              <span>{{ item.Telefone }}</span>
+                              <br>
+                              <span>{{ $formatarData(item.Data, 'dd/MM/yyyy HH:mm')}}</span>
+                            </div>
+                      </div>
+                  </div>
+              </template>
           </q-card-section>
         </q-card>
       </q-dialog>
-
     </q-layout>
     <audio ref="audioNotificationPlay">
       <source :src="alertSound"
@@ -579,6 +596,7 @@
 </template>
 
 <script>
+import { ref } from 'vue'
 import ItemStatusChannel from 'src/pages/sessaoWhatsapp/ItemStatusChannel.vue'
 import ContatoModal from 'src/pages/contatos/ContatoModal'
 import ItemTicket from './ItemTicket'
@@ -657,7 +675,9 @@ export default {
       mensagensRapidas: [],
       modalEtiquestas: false,
       exibirModalLogs: false,
-      logsTicket: []
+      logsTicket: [],
+      logsCalls: [],
+      pas: ''
     }
   },
   watch: {
@@ -710,6 +730,14 @@ export default {
     },
     cIsExtraInfo () {
       return this.ticketFocado?.contact?.extraInfo?.length > 0
+    },
+    checkStatus () {
+      const status = this.ticketFocado.status
+      if (status === 'open' || status === 'pending') {
+        return true
+      } else {
+        return false
+      }
     }
   },
   methods: {
@@ -743,6 +771,11 @@ export default {
         this.$refs.audioNotificationPlay.play()
       })
     },
+    findPas () {
+      const ob = this.logsCalls.forEach((x, y) => y === 2 && x.idPas)
+      this.pas = ob.idPas
+      return this.pas
+    },
     async listarConfiguracoes () {
       const { data } = await ListarConfiguracoes()
       localStorage.setItem('configuracoes', JSON.stringify(data))
@@ -765,6 +798,7 @@ export default {
       }
       try {
         const { data } = await ConsultarTickets(params)
+
         this.countTickets = data.count // count total de tickets no status
         this.$store.commit('LOAD_TICKETS', data.tickets)
         this.$store.commit('SET_HAS_MORE', data.hasMore)
@@ -840,7 +874,7 @@ export default {
         )
       }
     },
-    deletarMensagem (mensagem) {
+    deletarMensagem (mensagem, ticketF, idx) {
       const data = { ...mensagem }
       this.$q.dialog({
         title: 'Atenção!! Deseja realmente deletar a mensagem? ',
@@ -857,7 +891,9 @@ export default {
         },
         persistent: true
       }).onOk(() => {
+        window.location.reload(true)
         this.loading = true
+        ticketF.scheduledMessages.splice(idx, 1)
         DeletarMensagem(data)
           .then(res => {
             this.loading = false
@@ -895,7 +931,8 @@ export default {
     },
     async abrirModalLogs () {
       const { data } = await ConsultarLogsTicket({ ticketId: this.ticketFocado.id })
-      this.logsTicket = data
+      this.logsTicket = data.logsTicket
+      this.logsCalls = data.logsCalls
       this.exibirModalLogs = true
     }
   },
@@ -951,6 +988,11 @@ export default {
     this.$root.$on('update-ticket:info-contato', this.setValueMenuContact)
     this.socketDisconnect()
     this.$store.commit('TICKET_FOCADO', {})
+  },
+  setup () {
+    return {
+      slide: ref(1)
+    }
   }
 }
 </script>

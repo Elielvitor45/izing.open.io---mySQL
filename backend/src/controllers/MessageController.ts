@@ -15,6 +15,7 @@ import ListMessagesService from "../services/MessageServices/ListMessagesService
 import ShowTicketService from "../services/TicketServices/ShowTicketService";
 import DeleteWhatsAppMessage from "../services/WbotServices/DeleteWhatsAppMessage";
 import { logger } from "../utils/logger";
+import { DeleteMessageScheduled } from "../services/MessageServices/DeleteMessageScheduled";
 // import SendWhatsAppMedia from "../services/WbotServices/SendWhatsAppMedia";
 // import SendWhatsAppMessage from "../services/WbotServices/SendWhatsAppMessage";
 
@@ -52,8 +53,11 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
   // const wbotMessages = await wbotChat.fetchMessages({ limit: 100 });
   // const mf = messages.filter
   // console.log(wbotMessages);
-  SetTicketMessagesAsRead(ticket);
-
+  try {
+    SetTicketMessagesAsRead(ticket);
+  } catch (error) {
+    console.log("SetTicketMessagesAsRead", error);
+  }
   return res.json({ count, messages, messagesOffLine, ticket, hasMore });
 };
 
@@ -64,13 +68,12 @@ export const store = async (req: Request, res: Response): Promise<Response> => {
   const medias = req.files as Express.Multer.File[];
   const ticket = await ShowTicketService({ id: ticketId, tenantId });
 
-  try {
+  try{
     SetTicketMessagesAsRead(ticket);
-  } catch (error) {
-    console.log("SetTicketMessagesAsRead", error);
+  }catch(error){
+    console.log("try SetTicketMessagesAsRead",error)
   }
 
-  try {
     await CreateMessageSystemService({
       msg: messageData,
       tenantId,
@@ -82,9 +85,6 @@ export const store = async (req: Request, res: Response): Promise<Response> => {
       status: "pending",
       idFront: messageData.idFront
     });
-  } catch (error) {
-    console.log("try CreateMessageSystemService", error);
-  }
 
   return res.send();
 };
@@ -96,7 +96,16 @@ export const remove = async (
   const { messageId } = req.params;
   const { tenantId } = req.user;
   try {
-    await DeleteMessageSystem(req.body.id, messageId, tenantId);
+    if(messageId === 'null'|| !messageId){
+      const { idFront } = req.body;
+      if(idFront){
+        await DeleteMessageScheduled(idFront,tenantId);
+      }else{
+        throw new AppError("ERR_DELETE_NOTFOUND_IDFRONT")
+      }
+    }else{
+      await DeleteMessageSystem(req.body.id, messageId, tenantId);
+    }
   } catch (error) {
     logger.error(`ERR_DELETE_SYSTEM_MSG: ${error}`);
     throw new AppError("ERR_DELETE_SYSTEM_MSG");

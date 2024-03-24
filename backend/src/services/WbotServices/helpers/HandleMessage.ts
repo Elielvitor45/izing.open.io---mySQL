@@ -8,20 +8,32 @@ import { logger } from "../../../utils/logger";
 import FindOrCreateTicketService from "../../TicketServices/FindOrCreateTicketService";
 import ShowWhatsAppService from "../../WhatsappService/ShowWhatsAppService";
 import IsValidMsg from "./IsValidMsg";
-// import VerifyAutoReplyActionTicket from "./VerifyAutoReplyActionTicket";
 import VerifyContact from "./VerifyContact";
 import VerifyMediaMessage from "./VerifyMediaMessage";
 import VerifyMessage from "./VerifyMessage";
 import verifyBusinessHours from "./VerifyBusinessHours";
 import VerifyStepsChatFlowTicket from "../../ChatFlowServices/VerifyStepsChatFlowTicket";
 import Queue from "../../../libs/Queue";
-// import isMessageExistsService from "../../MessageServices/isMessageExistsService";
 import Setting from "../../../models/Setting";
+import TimerCloseTicket from "../LimitTimeService";
+import { delay } from "bluebird";
 
+var compareActivation = false;
 interface Session extends Client {
   id: number;
 }
-
+let dictionary = new Map<number, boolean>();
+const DictionaryVerifyandCreate = async (ticketId:number):Promise<boolean|void> => {
+  if(!dictionary.has(ticketId)){
+    dictionary.set(ticketId,true);
+    return false;
+  }else{
+    return true;
+  }
+}
+const DictionaryUpdate = async (ticketId:number,value:boolean):Promise<void> => {
+  dictionary.delete(ticketId);
+}
 const HandleMessage = async (
   msg: WbotMessage,
   wbot: Session
@@ -36,7 +48,6 @@ const HandleMessage = async (
 	  whatsapp = await ShowWhatsAppService({ id: wbot.id });
 
 	  const { tenantId } = whatsapp;
-
 	  //IGNORAR MENSAGENS DE GRUPO       
 	  const Settingdb = await Setting.findOne({
 		where: {key: 'ignoreGroupMsg', tenantId: tenantId }
@@ -44,7 +55,8 @@ const HandleMessage = async (
 	  if(Settingdb?.value == 'enabled') {
 		if (
 		  msg.from === "status@broadcast" ||
-		  msg.author != null
+		  msg.to.endsWith("@g.us") ||
+      msg.from.endsWith("@g.us")
 		) {
 		  return;
 		}
@@ -56,10 +68,6 @@ const HandleMessage = async (
         let groupContact: Contact | undefined;
 
         if (msg.fromMe) {
-          // media messages sent from me from cell phone, first comes with "hasMedia = false" and type = "image/ptt/etc"
-          // the media itself comes on body of message, as base64
-          // if this is the case, return and let this media be handled by media_uploaded event
-          // it should be improoved to handle the base64 media here in future versions
           if (!msg.hasMedia && msg.type !== "chat" && msg.type !== "vcard")
             return;
 
@@ -96,20 +104,42 @@ const HandleMessage = async (
           msg,
           channel: "whatsapp"
         });
-
-        if (ticket?.isCampaignMessage) {
-          resolve();
+        await delay(1000);
+        const verifyDictionary = await DictionaryVerifyandCreate(ticket.id);
+        if(verifyDictionary){
           return;
         }
 
+        if (ticket?.isCampaignMessage) {
+          resolve();
+          await delay(1000);
+          DictionaryUpdate(ticket.id,false);
+          return;
+        }
         if (msg.hasMedia) {
           await VerifyMediaMessage(msg, ticket, contact);
         } else {
           await VerifyMessage(msg, ticket, contact);
         }
+        
+        try {
+          if (compareActivation === false) {
+            compareActivation = true;
+            setInterval(TimerCloseTicket,300000);
+          }
+        } catch (error) {
+          compareActivation = false;
+          console.log(error);
+        }
+        const chatFlow = await ticket.getChatFlow();
         // await VerifyAutoReplyActionTicket(msg, ticket);
-        await VerifyStepsChatFlowTicket(msg, ticket);
-
+        const verifyClose = await verifyBusinessHours(msg, ticket);
+        if (chatFlow?.dataValues.isActive) {
+          if ((verifyClose === false || msg.body === '')) {
+          } else {
+            await VerifyStepsChatFlowTicket(msg, ticket);
+          }
+        }
         const apiConfig: any = ticket.apiConfig || {};
         if (
           !msg.fromMe &&
@@ -133,8 +163,8 @@ const HandleMessage = async (
             payload
           });
         }
-
-        await verifyBusinessHours(msg, ticket);
+        await delay(1000);
+        DictionaryUpdate(ticket.id,false);
         resolve();
       } catch (err) {
         logger.error(err);

@@ -192,6 +192,7 @@ export default {
       data: null,
       bl_sintetico: false,
       estadoPorDdd,
+      verify: false,
       estadosBR,
       contatos: [],
       etiquetas: [],
@@ -220,6 +221,19 @@ export default {
       ]
       return str.replace(new RegExp(ranges.join('|'), 'ug'), '')
     },
+    ErrorMessage (message) {
+      return this.$q.notify({
+        type: 'negative',
+        progress: true,
+        position: 'top',
+        message: message,
+        actions: [{
+          icon: 'close',
+          round: true,
+          color: 'white'
+        }]
+      })
+    },
     sortObject (obj) {
       return Object.keys(obj)
         .sort().reduce((a, v) => {
@@ -228,7 +242,13 @@ export default {
         }, {})
     },
     printReport (idElemento) {
-      this.imprimir = !this.imprimir
+      if (!this.pesquisa.ddds.length) {
+        this.ErrorMessage('Ops... Para gerar o relatório, é necessário selecionar pelo menos um Estado.')
+      } else if (this.verify) {
+        this.imprimir = !this.imprimir
+      } else {
+        this.ErrorMessage('Relatorio Vazio')
+      }
     },
     exportTable () {
       const json = XLSX.utils.table_to_sheet(
@@ -244,7 +264,13 @@ export default {
       }
       const wb = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb, json, 'Relatório Atendimentos')
-      XLSX.writeFile(wb, 'Atendimentos-TESTE.xlsx')
+      if (!this.pesquisa.ddds.length) {
+        this.ErrorMessage('Ops... Para gerar o relatório, é necessário selecionar pelo menos um Estado.')
+      } else if (this.verify) {
+        XLSX.writeFile(wb, 'Atendimentos-TESTE.xlsx')
+      } else {
+        this.ErrorMessage('Relatorio Vazio')
+      }
     },
     async listarEtiquetas () {
       const { data } = await ListarEtiquetas(true)
@@ -256,21 +282,16 @@ export default {
     },
     async gerarRelatorio () {
       if (!this.pesquisa.ddds.length) {
-        this.$q.notify({
-          message: 'Ops... Para gerar o relatório, é necessário selecionar pelo menos um Estado.',
-          type: 'negative',
-          progress: true,
-          position: 'top',
-          actions: [{
-            icon: 'close',
-            round: true,
-            color: 'white'
-          }]
-        })
+        this.ErrorMessage('Ops... Para gerar o relatório, é necessário selecionar pelo menos um Estado.')
         return
       }
       const { data } = await RelatorioContatos(this.pesquisa)
       this.contatos = data.contacts
+      if (this.contatos.length > 0) {
+        this.verify = true
+      } else {
+        this.verify = false
+      }
     }
   },
   beforeMount () {

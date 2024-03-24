@@ -1,30 +1,34 @@
 import { QueryTypes } from "sequelize";
-import sequelize from "../../database";
+import {asterisksquelize,sequelize} from "../../database";
 
 interface Request {
   startDate: string;
   endDate: string;
   tenantId: string | number;
+  userId: string | number;
+  userProfile: string | number;
 }
 
 const query = `
-  select
-  dt_ref,
-  to_char(dt_ref, 'DD/MM/YYYY') as label,
-  qtd
-  --ROUND(100.0*(qtd/sum(qtd) over ()), 2) pertentual
-  from (
-  select
-  date_trunc('day', t."createdAt") dt_ref,
-  count(1) as qtd
-  from "Tickets" t
-  where t."tenantId" = :tenantId
-  and date_trunc('day', t."createdAt") between :startDate and :endDate
-  group by date_trunc('day', t."createdAt")
-  ) a
-  order by 1
-`;
-
+SELECT dt_ref, 
+DATE_FORMAT(dt_ref, '%Y/%m/%d') as label,
+qtd , 
+ROUND(100.0 * (qtd / total_qtd), 2) AS percentual
+FROM (
+	SELECT 
+		date_format(t.createdAt, '%Y-%m-%d') AS dt_ref,
+		COUNT(*) AS qtd,
+		(
+			SELECT COUNT(*)
+			FROM Tickets 
+			WHERE tenantid = :tenantId
+			AND date_format(dt_ref, '%Y-%m-%d') BETWEEN :startDate AND :endDate
+		) AS total_qtd
+		FROM Tickets t
+		WHERE t.tenantid = :tenantId and date_format(t.createdAt, '%Y-%m-%d') BETWEEN :startDate AND :endDate
+		GROUP BY dt_ref
+) a
+ORDER BY dt_ref;`;
 const DashTicketsEvolutionByPeriod = async ({
   startDate,
   endDate,
@@ -37,7 +41,6 @@ const DashTicketsEvolutionByPeriod = async ({
       endDate
     },
     type: QueryTypes.SELECT
-    // logging: console.log
   });
   return data;
 };

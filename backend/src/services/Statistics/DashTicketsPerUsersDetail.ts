@@ -1,34 +1,47 @@
 import { QueryTypes } from "sequelize";
-import sequelize from "../../database";
+import {asterisksquelize,sequelize} from "../../database";
 
 interface Request {
   startDate: string;
   endDate: string;
   tenantId: string | number;
+  userId: string | number;
+  userProfile: string | number;
 }
 
+// const query = `
+// SELECT
+// DISTINCT(t.email),
+// name,
+// SUM(CASE WHEN t.status = 'open' THEN 1 ELSE 0 END) OVER (PARTITION BY t.email) AS qtd_em_atendimento,
+// SUM(CASE WHEN t.status = 'pending' THEN 1 ELSE 0 END) OVER (PARTITION BY t.email) AS qtd_pendentes,
+// SUM(CASE WHEN t.status = 'closed' THEN 1 ELSE 0 END) OVER (PARTITION BY t.email) AS qtd_resolvidos,
+// COUNT(*) OVER (PARTITION BY t.email) AS qtd_por_usuario,
+// SEC_TO_TIME(AVG(TIMESTAMPDIFF(SECOND, t.createdAt, FROM_UNIXTIME(t.closedAt/1000))*60)) AS tma,
+// SEC_TO_TIME(AVG(TIMESTAMPDIFF(SECOND, t.createdAt, FROM_UNIXTIME(t.startedAttendanceAt/1000))*60)) AS tme
+// FROM tickets t
+// LEFT JOIN Users u ON t.userId = u.id
+// LEFT JOIN Queues q ON q.id = t.queueId
+// WHERE t.tenantId = @tenantId
+// AND DATE(t.createdAt) BETWEEN @startDate AND @endDate
+// ORDER BY 6 DESC
+// `;
 const query = `
-    select
-    distinct(email),
-    name,
-    count(*) FILTER (where t.status = 'open') OVER (PARTITION by email ) as qtd_em_atendimento,
-    count(*) FILTER (where t.status = 'pending') OVER (PARTITION by email) as qtd_pendentes,
-    count(*) FILTER (where t.status = 'closed') OVER (PARTITION by email ) as qtd_resolvidos,
-    count(*) OVER (PARTITION by email) as qtd_por_usuario,
-    --ROUND(MIN(extract(epoch from AGE(to_timestamp(t."closedAt"/1000), t."createdAt")::interval)/60) OVER (PARTITION by email)::decimal, 0) menor_tma,
-    --ROUND(MAX(extract(epoch from AGE(to_timestamp(t."closedAt"/1000), t."createdAt")::interval)/60) OVER (PARTITION by email)::decimal, 0) maior_tma,
-    concat(coalesce(ROUND(AVG(extract(epoch from AGE(to_timestamp(t."closedAt"/1000), t."createdAt")::interval)/60) OVER (PARTITION by email)::decimal, 0), 0), 'minutes')::interval tma,
-    --ROUND(MIN(extract(epoch from AGE(to_timestamp(t."startedAttendanceAt"/1000), t."createdAt"::timestamp)::interval)/60) OVER (PARTITION by email)::decimal, 0) menor_tme,
-    --ROUND(MAX(extract(epoch from AGE(to_timestamp(t."startedAttendanceAt"/1000), t."createdAt"::timestamp)::interval)/60) OVER (PARTITION by email)::decimal, 0) maior_tme,
-    concat(coalesce(ROUND(AVG(extract(epoch from AGE(to_timestamp(t."startedAttendanceAt"/1000), t."createdAt"::timestamp)::interval)/60) OVER (PARTITION by email)::decimal, 0), 0), 'minutes')::interval tme
-    from "Tickets" t
-    left join "Users" u on t."userId" = "u"."id"
-    left join "Queues" q on q.id  = t."queueId"
-    where t."tenantId" = :tenantId
-    and date_trunc('day', t."createdAt") between :startDate and :endDate
-    order by 6 Desc
-`;
-
+SELECT
+u.name,
+SUM(CASE WHEN t.status = 'open' THEN 1 ELSE 0 END) AS qtd_em_atendimento,
+SUM(CASE WHEN t.status = 'pending' THEN 1 ELSE 0 END) AS qtd_pendentes,
+SUM(CASE WHEN t.status = 'closed' THEN 1 ELSE 0 END) AS qtd_resolvidos,
+COUNT(*) AS qtd_por_usuario,
+AVG(TIMESTAMPDIFF(MINUTE, t.createdAt, FROM_UNIXTIME(t.closedAt/1000)))*60*1000 AS tma,
+AVG(TIMESTAMPDIFF(MINUTE, t.createdAt, FROM_UNIXTIME(t.startedAttendanceAt/1000)))*60*1000 AS tme
+FROM Tickets t
+RIGHT JOIN Users u ON u.id = t.userId  
+LEFT JOIN Queues q ON q.id = t.queueId
+WHERE t.tenantId = :tenantId
+AND DATE(t.createdAt) BETWEEN :startDate AND :endDate
+GROUP BY u.name
+ORDER BY tma DESC`;
 const DashTicketsPerUsersDetail = async ({
   startDate,
   endDate,

@@ -16,31 +16,8 @@
       }">
       <q-item-section avatar
         class="q-px-none">
-        <q-btn flat
-          @click="iniciarAtendimento(ticket)"
-          push
-          color="primary"
-          dense
-          round
-          v-if="ticket.status === 'pending' || (buscaTicket && ticket.status === 'pending')">
-          <q-badge v-if="ticket.unreadMessages"
-            style="border-radius: 10px;"
-            class="text-center text-bold"
-            floating
-            dense
-            text-color="black"
-            color="blue-2"
-            :label="ticket.unreadMessages" />
-          <q-avatar>
-            <q-icon size="45px"
-              name="mdi-play-circle-outline" />
-          </q-avatar>
-          <q-tooltip>
-            Atender
-          </q-tooltip>
-        </q-btn>
         <q-avatar size="45px"
-          v-if="ticket.status !== 'pending'"
+          v-if="ticket.status"
           class="relative-position">
           <q-badge v-if="ticket.unreadMessages"
             style="border-radius: 10px; z-index: 99"
@@ -53,6 +30,14 @@
           <img :src="ticket.profilePicUrl"
             onerror="this.style.display='none'"
             v-show="ticket.profilePicUrl">
+              <q-badge v-if="ticket.unreadMessages"
+              class="text-center text-bold"
+              floating
+              dense
+              text-color="black"
+              color="blue-2"
+              :label="ticket.unreadMessages"
+              style="border-radius: 20px;" />
           <q-icon size="45px"
             name="mdi-account-circle"
             color="grey-8" />
@@ -96,6 +81,23 @@
                 Atendimento Resolvido
               </q-tooltip>
             </q-icon>
+            <q-item-section
+        class="q-px-none">
+        <q-btn flat
+          @click="iniciarAtendimento(ticket)"
+          push
+          style="background-color: green; margin-bottom: 10px; justify-self: center; align-self: center;"
+          color="white"
+          dense
+          square
+          label="ATENDER"
+          v-if="ticket.status === 'pending' || (buscaTicket && ticket.status === 'pending')">
+          <q-tooltip>
+            Atender
+          </q-tooltip>
+        </q-btn>
+
+      </q-item-section>
             <q-icon
               v-if="(ticket.stepAutoReplyId && ticket.autoReplyId && ticket.status === 'pending') || (ticket.chatFlowId && ticket.stepChatFlow && ticket.status === 'pending')"
               name="mdi-robot"

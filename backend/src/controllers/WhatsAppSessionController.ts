@@ -34,7 +34,7 @@ const update = async (req: Request, res: Response): Promise<Response> => {
   if (isQrcode) {
     await apagarPastaSessao(whatsappId);
   }
-
+  
   const { whatsapp } = await UpdateWhatsAppService({
     whatsappId,
     whatsappData: { session: "" },

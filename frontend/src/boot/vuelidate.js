@@ -8,8 +8,8 @@ const messages = {
   required: '{attribute} é obrigatório',
   email: '{attribute} é inválido.',
   minValue: '{attribute} deve ser maior que {min}',
-  minLength: '{attribute} deve possui no mínimo {min} carateres',
-  maxLength: '{attribute} deve possui no máximo {min} carateres',
+  minLength: '{attribute} deve possuir no mínimo {min} carateres',
+  maxLength: '{attribute} deve possuir no máximo {max} carateres',
   validaData: 'Data inválida'
 }
 

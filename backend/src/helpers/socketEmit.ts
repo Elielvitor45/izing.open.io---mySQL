@@ -8,8 +8,8 @@ type Events =
   | "ticket:update"
   | "ticket:create"
   | "contact:update"
-  | "contact:delete";
-
+  | "contact:delete"
+  | "notification:new";
 interface ObjEvent {
   tenantId: number | string;
   type: Events;
@@ -30,5 +30,4 @@ const emitEvent = ({ tenantId, type, payload }: ObjEvent): void => {
     payload
   });
 };
-
 export default emitEvent;

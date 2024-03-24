@@ -16,6 +16,16 @@ export function ConsultarDadosTicket (params) {
   })
 }
 
+export function AtualizarPas (params, ticketId) {
+  return request({
+    url: `/tickets/${ticketId}/teste`,
+    method: 'put',
+    data: {
+      params
+    }
+  })
+}
+
 export function ConsultarLogsTicket (params) {
   return request({
     url: `/tickets/${params.ticketId}/logs`,

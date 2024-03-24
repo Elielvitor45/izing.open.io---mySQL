@@ -4,13 +4,36 @@
     @hide="fecharModal"
     @show="abrirModal"
     persistent
-  >
+  ><q-inner-loading
+        :showing="visible"
+        label="Please wait..."
+        label-class="text-teal"
+        label-style="font-size: 1.1em"
+      />
     <q-card
-      style="width: 500px"
+      style="width: 700px"
       class="q-pa-lg"
-    >
+    ><div
+          v-if="chatFlow.isBlocked"
+          class="text-subtitle1"
+        > {{"Certeza que deseja deletar o fluxo?"}}
+      <q-btn
+          flat
+          label="Não"
+          color="negative"
+          v-close-popup
+          class="q-mr-md"
+      />
+      <q-btn
+          flat
+          label="Sim"
+          color="primary"
+          @click="handleAutoresposta"
+      />
+      </div>
+    <div v-if="!chatFlow.isBlocked">
       <q-card-section>
-        <div class="text-h6">{{ chatFlow.isDuplicate ? 'Duplicar' : chatFlowEdicao.id ? 'Editar': 'Criar' }} Fluxo <span v-if="chatFlow.isDuplicate"> (Nome: {{ chatFlowEdicao.name }}) </span></div>
+        <div class="text-h6">{{ chatFlow.isDuplicate ? 'Duplicar' : chatFlowEdicao.id ? 'Editar': 'Criar'}} Fluxo <span v-if="chatFlow.isDuplicate"></span></div>
         <div
           v-if="chatFlow.isDuplicate"
           class="text-subtitle1"
@@ -67,6 +90,7 @@
           @click="handleAutoresposta"
         />
       </q-card-actions>
+    </div>
     </q-card>
   </q-dialog>
 
@@ -74,7 +98,7 @@
 
 <script>
 const userId = +localStorage.getItem('userId')
-import { CriarChatFlow, UpdateChatFlow } from 'src/service/chatFlow'
+import { CriarChatFlow, UpdateChatFlow, ListarChatFlow } from 'src/service/chatFlow'
 import { getDefaultFlow } from 'src/components/ccFlowBuilder/defaultFlow'
 
 export default {
@@ -97,7 +121,8 @@ export default {
         name: null,
         userId,
         celularTeste: null,
-        isActive: true
+        isActive: true,
+        isBlocked: false
       }
       // options: [
       //   { value: 0, label: 'Entrada (Criação do Ticket)' },
@@ -134,7 +159,12 @@ export default {
       this.$emit('update:modalChatFlow', false)
     },
     async handleAutoresposta () {
-      if (this.chatFlow.id && !this.chatFlow?.isDuplicate) {
+      if (this.chatFlow.id && this.chatFlow?.isBlocked === true) {
+        await UpdateChatFlow(this.chatFlow)
+        const { data } = await ListarChatFlow()
+        this.$notificarSucesso('Fluxo Deletado.')
+        this.$emit('chatFlow:listado', data)
+      } else if (this.chatFlow.id && !this.chatFlow?.isDuplicate && this.chatFlow?.isBlocked === false) {
         const { data } = await UpdateChatFlow(this.chatFlow)
         this.$notificarSucesso('Fluxo editado.')
         this.$emit('chatFlow:editado', data)

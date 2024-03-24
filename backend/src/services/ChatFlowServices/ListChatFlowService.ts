@@ -12,8 +12,7 @@ const ListChatFlowService = async ({
   tenantId
 }: Request): Promise<Response> => {
   const chatFlow = await ChatFlow.findAll({
-    where: { tenantId }
-    // order: [[{ model: StepsReply, as: "stepsReply" }, "id", "ASC"]]
+    where: { tenantId, isBlocked: false }
   });
 
   return { chatFlow };

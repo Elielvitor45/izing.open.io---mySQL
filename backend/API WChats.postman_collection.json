@@ -47,12 +47,12 @@
           ]
         },
         "url": {
-          "raw": "http://localhost:3030/v1/api/external/999ab3a2-9f1f-4ffb-969a-bfb72234ece1",
+          "raw": "http://localhost:3100/v1/api/external/999ab3a2-9f1f-4ffb-969a-bfb72234ece1",
           "protocol": "http",
           "host": [
             "localhost"
           ],
-          "port": "3030",
+          "port": "3100",
           "path": [
             "v1",
             "api",
@@ -88,12 +88,12 @@
           }
         },
         "url": {
-          "raw": "http://localhost:3030/v1/api/external/999ab3a2-9f1f-4ffb-969a-bfb72234ece1",
+          "raw": "http://localhost:3100/v1/api/external/999ab3a2-9f1f-4ffb-969a-bfb72234ece1",
           "protocol": "http",
           "host": [
             "localhost"
           ],
-          "port": "3030",
+          "port": "3100",
           "path": [
             "v1",
             "api",

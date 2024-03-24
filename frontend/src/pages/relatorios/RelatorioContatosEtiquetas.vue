@@ -196,6 +196,7 @@ export default {
     return {
       data: null,
       bl_sintetico: false,
+      verify: false,
       contatos: [],
       etiquetas: [],
       columns: [
@@ -243,8 +244,27 @@ export default {
           return a
         }, {})
     },
+    ErrorMessage (message) {
+      return this.$q.notify({
+        type: 'negative',
+        progress: true,
+        position: 'top',
+        message: message,
+        actions: [{
+          icon: 'close',
+          round: true,
+          color: 'white'
+        }]
+      })
+    },
     printReport (idElemento) {
-      this.imprimir = !this.imprimir
+      if (!this.pesquisa.tags.length) {
+        this.ErrorMessage('Ops... Para gerar o relatório, é necessário selecionar pelo menos uma etiqueta.')
+      } else if (this.verify) {
+        this.imprimir = !this.imprimir
+      } else {
+        this.ErrorMessage('Relatorio Vazio')
+      }
     },
     exportTable () {
       const json = XLSX.utils.table_to_sheet(
@@ -260,7 +280,13 @@ export default {
       }
       const wb = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb, json, 'Relatório Atendimentos')
-      XLSX.writeFile(wb, 'Atendimentos-TESTE.xlsx')
+      if (!this.pesquisa.tags.length) {
+        this.ErrorMessage('Ops... Para gerar o relatório, é necessário selecionar pelo menos uma etiqueta.')
+      } else if (this.verify) {
+        XLSX.writeFile(wb, 'Atendimentos-TESTE.xlsx')
+      } else {
+        this.ErrorMessage('Relatorio Vazio')
+      }
     },
     async listarEtiquetas () {
       const { data } = await ListarEtiquetas(true)
@@ -268,11 +294,16 @@ export default {
     },
     async gerarRelatorio () {
       if (!this.pesquisa.tags.length) {
-        this.$notificarErro('Ops... Para gerar o relatório, é necessário selecionar pelo menos uma etiqueta.')
+        this.ErrorMessage('Ops... Para gerar o relatório, é necessário selecionar pelo menos uma etiqueta.')
         return
       }
       const { data } = await RelatorioContatos(this.pesquisa)
       this.contatos = data.contacts
+      if (this.contatos.length > 0) {
+        this.verify = true
+      } else {
+        this.verify = false
+      }
     }
   },
   beforeMount () {

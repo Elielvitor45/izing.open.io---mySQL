@@ -1,3 +1,4 @@
+import { where } from "sequelize";
 import AppError from "../../errors/AppError";
 import Setting from "../../models/Setting";
 

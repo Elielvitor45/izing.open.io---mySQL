@@ -3,17 +3,23 @@ import { Op } from "sequelize";
 // import GetWbotMessage from "../helpers/GetWbotMessage";
 import { getIO } from "../libs/socket";
 import Message from "../models/Message";
-import Whatsapp from "../models/Whatsapp";
-import CreateLogTicketService from "../services/TicketServices/CreateLogTicketService";
-import { generateMessage } from "../utils/mustache";
 
+import CreateLogTicketService from "../services/TicketServices/CreateLogTicketService";
+
+import CheckCustomer from "../services/CheckAsteriskService/VerifyClient";
 import CreateTicketService from "../services/TicketServices/CreateTicketService";
 import DeleteTicketService from "../services/TicketServices/DeleteTicketService";
 import ListTicketsService from "../services/TicketServices/ListTicketsService";
 import ShowLogTicketService from "../services/TicketServices/ShowLogTicketService";
 import ShowTicketService from "../services/TicketServices/ShowTicketService";
 import UpdateTicketService from "../services/TicketServices/UpdateTicketService";
-import SendWhatsAppMessage from "../services/WbotServices/SendWhatsAppMessage";
+import CheckLastCallService from "../services/CheckAsteriskService/CheckLastCallService";
+import UpdateTicketPasService from "../services/TicketServices/UpdateTicketPasService";
+import Whatsapp from "../models/Whatsapp";
+import AppError from "../errors/AppError";
+import CreateMessageSystemService from "../services/MessageServices/CreateMessageSystemService";
+import { pupa } from "../utils/pupa";
+
 
 type IndexQuery = {
   searchParam: string;
@@ -27,6 +33,12 @@ type IndexQuery = {
   includeNotQueueDefined: string;
 };
 
+type Pas = {
+  pas: boolean|undefined;
+  startDate: string;
+  endDate: string;
+};
+
 interface TicketData {
   contactId: number;
   status: string;
@@ -34,9 +46,11 @@ interface TicketData {
   isActiveDemand: boolean;
   tenantId: string | number;
   channel: string;
+  channelId?: number;
 }
 
 export const index = async (req: Request, res: Response): Promise<Response> => {
+  
   const { tenantId, profile } = req.user;
   const {
     searchParam,
@@ -47,9 +61,16 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
     withUnreadMessages,
     queuesIds,
     isNotAssignedUser,
-    includeNotQueueDefined
+    includeNotQueueDefined,
   } = req.query as IndexQuery;
 
+  var pas:boolean|undefined;
+  var startDate:string|undefined;
+  var endDate:string|undefined;
+  if(req.query && req.query.pas){
+    ({ pas, startDate, endDate } = req.query as Pas)
+  }
+  
   const userId = req.user.id;
 
   const { tickets, count, hasMore } = await ListTicketsService({
@@ -64,7 +85,10 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
     isNotAssignedUser,
     includeNotQueueDefined,
     tenantId,
-    profile
+    profile,
+    pas,
+    startDate,
+    endDate
   });
 
   return res.status(200).json({ tickets, count, hasMore });
@@ -72,16 +96,17 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
 
 export const store = async (req: Request, res: Response): Promise<Response> => {
   const { tenantId } = req.user;
-  const { contactId, status, userId, channel }: TicketData = req.body;
+  const { contactId, status, userId, channel, channelId }: TicketData =
+    req.body;
 
   const ticket = await CreateTicketService({
     contactId,
     status,
     userId,
     tenantId,
-    channel
-  });
-
+    channel,
+    channelId
+  }); 
   // se ticket criado pelo próprio usuário, não emitir socket.
   if (!userId) {
     const io = getIO();
@@ -90,9 +115,18 @@ export const store = async (req: Request, res: Response): Promise<Response> => {
       ticket
     });
   }
-
   return res.status(200).json(ticket);
 };
+
+export const updatePasId = async (req: Request, res: Response): Promise<Response> =>{
+  const data = await CheckCustomer(req.body.params);
+  if(data != undefined){
+    await UpdateTicketPasService({ ticketId: req.params.ticketId, codigoPas: req.body.params})
+    return res.status(200).json('');
+  }else{
+    throw new Error("ERR_UPDATE_DATA_INVALID")
+  }
+}
 
 export const show = async (req: Request, res: Response): Promise<Response> => {
   const { ticketId } = req.params;
@@ -149,24 +183,38 @@ export const update = async (
   const { isTransference } = req.body;
 
   const ticketData: TicketData = { ...req.body, tenantId };
-
+  
   const { ticket } = await UpdateTicketService({
     ticketData,
     ticketId,
     isTransference,
     userIdRequest
   });
-  
+  //Resolver
   //enviar mensagem de despedida ao encerrar atendimento
   if (ticket.status === "closed") {
-	const whatsapp = await Whatsapp.findOne({
-		where: { id: ticket.whatsappId, tenantId }
-	});	
-	if(whatsapp?.farewellMessage){
-        await SendWhatsAppMessage({body: generateMessage(`${whatsapp?.farewellMessage}`, ticket), ticket});    
+    const whatsapp = await Whatsapp.findOne({
+      where: { id: ticket.whatsappId, tenantId }
+    });
+    if (whatsapp?.farewellMessage) {
+      const body = pupa(whatsapp.farewellMessage || "", {
+        protocol: ticket.protocol,
+        name: ticket.contact.name
+      });
+      const messageData = {
+        msg: { body, fromMe: true, read: true },
+        tenantId,
+        ticket,
+        userId: req.user.id,
+        sendType: "bot",
+        status: "pending",
+        isTransfer: false,
+        note: false
+      };
+      await CreateMessageSystemService(messageData);
+      ticket.update({ isFarewellMessage: true });
     }
-  };
-
+  }
   return res.status(200).json(ticket);
 };
 
@@ -197,8 +245,12 @@ export const showLogsTicket = async (
   res: Response
 ): Promise<Response> => {
   const { ticketId } = req.params;
-
-  const logsTicket = await ShowLogTicketService({ ticketId });
-
-  return res.status(200).json(logsTicket);
+  const logsTicket = await ShowLogTicketService({ ticketId })
+  const logsCalls = await CheckLastCallService({ ticketId })
+  
+  const postData = {
+    logsTicket: logsTicket,
+    logsCalls: logsCalls
+  }
+  return res.status(200).json(postData);
 };

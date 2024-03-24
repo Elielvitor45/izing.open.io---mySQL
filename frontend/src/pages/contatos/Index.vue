@@ -242,7 +242,7 @@ export default {
     },
     async handleSaveTicket (contact, channel) {
       if (!contact.id) return
-      this.loading = true
+      this.loading = false
       try {
         const { data: ticket } = await CriarTicket({
           contactId: contact.id,
