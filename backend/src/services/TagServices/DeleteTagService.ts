@@ -1,5 +1,6 @@
 import Tag from "../../models/Tag";
 import AppError from "../../errors/AppError";
+import ContactTag from "../../models/ContactTag";
 
 interface Request {
   id: string;
@@ -9,6 +10,10 @@ interface Request {
 const DeleteTagService = async ({ id, tenantId }: Request): Promise<void> => {
   const tag = await Tag.findOne({
     where: { id, tenantId }
+  });
+
+  await ContactTag.destroy({
+    where:{ tagId: id}
   });
 
   if (!tag) {

@@ -13,7 +13,8 @@ import UsersQueues from "../../models/UsersQueues";
 
 interface TicketData {
   status?: string;
-  userId?: number;
+  isExternal?: number | null;
+  userId?: number | null;
   tenantId: number | string;
   queueId?: number | null;
   autoReplyId?: number | string | null;
@@ -39,7 +40,7 @@ const UpdateTicketService = async ({
   isTransference,
   userIdRequest
 }: Request): Promise<Response> => {
-  var { status, userId, tenantId, queueId } = ticketData;
+  var { status, userId, tenantId, queueId, isExternal } = ticketData;
   if(userId && !queueId){
     const queueID = await UsersQueues.findOne({
       where: {
@@ -177,7 +178,7 @@ const UpdateTicketService = async ({
   }
 
   //enviar mensagem de saudação ao iniciar o atendimento
-  if (statusData === "open") {
+  if (statusData === "open" && !(isExternal == 1)) {
     if (isTransference && userId) {
       if (whatsapp?.greetingMessage) {
         await wbot.sendMessage(`${ticket.contact.number}@${ticket.isGroup ? "g" : "c"}.us`,

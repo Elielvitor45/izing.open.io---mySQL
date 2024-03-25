@@ -24,3 +24,8 @@ yarn-error.log
 backend/.wwebjs_auth/
 backend/newrelic_agent.log
 newrelic_agent.log
+backend/.env---
+mysql
+redis
+frontend/docker-compose.yml
+frontend/dockerfile

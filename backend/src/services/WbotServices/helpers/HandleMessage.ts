@@ -17,6 +17,7 @@ import Queue from "../../../libs/Queue";
 import Setting from "../../../models/Setting";
 import TimerCloseTicket from "../LimitTimeService";
 import { delay } from "bluebird";
+import UpdateTicketService from "../../TicketServices/UpdateTicketService";
 
 var compareActivation = false;
 interface Session extends Client {
@@ -47,7 +48,8 @@ const HandleMessage = async (
 	  
 	  whatsapp = await ShowWhatsAppService({ id: wbot.id });
 
-	  const { tenantId } = whatsapp;
+	  const { tenantId, number } = whatsapp;
+
 	  //IGNORAR MENSAGENS DE GRUPO       
 	  const Settingdb = await Setting.findOne({
 		where: {key: 'ignoreGroupMsg', tenantId: tenantId }
@@ -56,7 +58,7 @@ const HandleMessage = async (
 		if (
 		  msg.from === "status@broadcast" ||
 		  msg.to.endsWith("@g.us") ||
-      msg.from.endsWith("@g.us")
+      msg.from.endsWith("@g.us") 
 		) {
 		  return;
 		}
@@ -95,6 +97,7 @@ const HandleMessage = async (
 
         // const profilePicUrl = await msgContact.getProfilePicUrl();
         const contact = await VerifyContact(msgContact, tenantId);
+        await delay(1000);
         const ticket = await FindOrCreateTicketService({
           contact,
           whatsappId: wbot.id!,
@@ -104,16 +107,26 @@ const HandleMessage = async (
           msg,
           channel: "whatsapp"
         });
-        await delay(1000);
         const verifyDictionary = await DictionaryVerifyandCreate(ticket.id);
         if(verifyDictionary){
           return;
         }
+        const ticketId = ticket.id;
 
+        if(msg.ack === 1 && number === msg.from.split('@')[0] ){
+          // await UpdateStatusTicketService("open", ticketId, tenantId);
+          if(ticket.status !== "open"){
+            const userIdRequest = 1;
+            await UpdateTicketService({
+              ticketData: { status: "open", tenantId , userId: userIdRequest, isExternal: 1 },
+              ticketId,
+              userIdRequest
+            });
+          }
+        }
         if (ticket?.isCampaignMessage) {
           resolve();
-          await delay(1000);
-          DictionaryUpdate(ticket.id,false);
+          await DictionaryUpdate(ticket.id,false);
           return;
         }
         if (msg.hasMedia) {
@@ -163,8 +176,7 @@ const HandleMessage = async (
             payload
           });
         }
-        await delay(1000);
-        DictionaryUpdate(ticket.id,false);
+        await DictionaryUpdate(ticket.id,false);
         resolve();
       } catch (err) {
         logger.error(err);
