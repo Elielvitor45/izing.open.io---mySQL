@@ -277,7 +277,7 @@
     >
       <q-card
         class="q-pa-md"
-        style="width: 500px"
+        style="width: 250px"
       >
         <q-card-section>
           <div class="text-h6">Insira o PAS:</div>
@@ -382,7 +382,7 @@ export default {
       usuarios: [],
       filaSelecionado: null,
       filas: [],
-      codigoPas: ''
+      codigoPas: null
     }
   },
   watch: {
@@ -459,25 +459,27 @@ export default {
       this.modalAssociarPas = true
     },
     async associarPasSalvar () {
-      // await AtualizarPas(this.codigoPas, this.ticketFocado.id)
-      // this.modalAssociarPas = false
       try {
-        await AtualizarPas(this.codigoPas, this.ticketFocado.id)
-        this.$q.notify({
-          type: 'positive',
-          position: 'top',
-          message: 'Código PAS associado com sucesso!',
-          progress: true,
-          actions: [{
-            icon: 'close',
-            round: true,
-            color: 'white'
-          }]
-        })
-        this.modalAssociarPas = false
+        if (isNaN(this.codigoPas) || this.codigoPas.toString().length !== 5) {
+          this.$notificarErro('PAS Inválido')
+        } else {
+          await AtualizarPas(this.codigoPas, this.ticketFocado.id)
+          this.$q.notify({
+            type: 'positive',
+            position: 'top',
+            message: 'Código PAS associado com sucesso!',
+            progress: true,
+            actions: [{
+              icon: 'close',
+              round: true,
+              color: 'white'
+            }]
+          })
+          this.modalAssociarPas = false
+        }
       } catch (error) {
         console.error(error)
-        this.$notificarErro('Problema ao carregar', error)
+        this.$notificarErro('PAS Inválido', error)
       }
     },
     async limparCampos () {

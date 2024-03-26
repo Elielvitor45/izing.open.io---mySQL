@@ -6,7 +6,7 @@
     <q-item clickable
       style="height: 85px; max-width: 100%;"
       @click="abrirChatContato(ticket)"
-      :style="`border-left: 5px solid ${borderColor[ticket.status]}; border-radius: 10px`"
+      :style="`border-left: 5px solid ${borderColor[ticket.status]}; border-radius:`"
       id="item-ticket-houve"
       class="ticketBorder q-px-sm"
       :class="{
@@ -16,6 +16,19 @@
       }">
       <q-item-section avatar
         class="q-px-none">
+        <q-icon
+              v-if="(ticket.stepAutoReplyId && ticket.autoReplyId && ticket.status === 'pending') || (ticket.chatFlowId && ticket.stepChatFlow && ticket.status === 'pending')"
+              name="mdi-robot"
+              floating
+              dense
+              color="primary"
+              size="1.5em"
+              class="q-mb-sm"
+              style="position: absolute; bottom: 0; left: 0;">
+              <q-tooltip>
+                ChatBot atendendo
+              </q-tooltip>
+            </q-icon>
         <q-avatar size="45px"
           v-if="ticket.status"
           class="relative-position">
@@ -29,27 +42,28 @@
             :label="ticket.unreadMessages" />
           <img :src="ticket.profilePicUrl"
             onerror="this.style.display='none'"
-            v-show="ticket.profilePicUrl">
-              <q-badge v-if="ticket.unreadMessages"
+            v-show="ticket.profilePicUrl"
+            style="background-color:blueviolet">
+            <q-badge v-if="ticket.unreadMessages"
               class="text-center text-bold"
               floating
               dense
               text-color="black"
               color="blue-2"
               :label="ticket.unreadMessages"
-              style="border-radius: 20px;" />
-          <q-icon size="45px"
-            name="mdi-account-circle"
-            color="grey-8" />
+              style="border-radius: 20px; position: absolute;" />
+              <q-icon size="45px"
+                name="mdi-account-circle"
+                color="grey-8" />
         </q-avatar>
 
       </q-item-section>
-      <q-item-section id="ListItemsTicket">
-        <q-item-label class="text-bold"
+      <q-item-section id="ListItemsTicket" style="max-width: 180px;">
+        <q-item-label class="text-bold width"
           lines="1">
           {{ !ticket.name ? ticket.contact.name : ticket.name }}
-          <q-icon size="20px"
-            :name="`img:${ticket.channel}-logo.png`" />
+          <!-- <q-icon size="20px"
+            :name="`img:${ticket.channel}-logo.png`" /> -->
           <span class="absolute-top-right q-pr-xs">
             <q-badge dense
               style="font-size: .7em;"
@@ -86,28 +100,15 @@
         <q-btn flat
           @click="iniciarAtendimento(ticket)"
           push
-          style="background-color: green; margin-bottom: 10px; justify-self: center; align-self: center;"
+          style="background-color: green; justify-self: center; align-self: center; margin: 10px; box-sizing: border-box; border-radius: 3ch;"
           color="white"
           dense
           square
           label="ATENDER"
           v-if="ticket.status === 'pending' || (buscaTicket && ticket.status === 'pending')">
-          <q-tooltip>
-            Atender
-          </q-tooltip>
         </q-btn>
 
       </q-item-section>
-            <q-icon
-              v-if="(ticket.stepAutoReplyId && ticket.autoReplyId && ticket.status === 'pending') || (ticket.chatFlowId && ticket.stepChatFlow && ticket.status === 'pending')"
-              name="mdi-robot"
-              color="primary"
-              size="1.8em"
-              class="q-mb-sm">
-              <q-tooltip>
-                ChatBot atendendo
-              </q-tooltip>
-            </q-icon>
           </span>
         </q-item-label>
         <q-item-label lines="1"

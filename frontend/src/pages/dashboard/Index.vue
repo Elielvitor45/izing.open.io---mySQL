@@ -65,7 +65,7 @@
     </q-card>
     <q-card class="q-my-md q-pa-sm" >
       <q-card-section class="q-pa-md">
-        <div class="row q-gutter-md justify-between" style="justify-content: center; gap: 10px;">
+        <div class="row q-gutter-md justify-center grid" style="display: flex; justify-content: center;">
           <div>
             <q-card class="my-card full-height" flat bordered style="min-width: 300px; border-radius: 20px;">
               <q-card-section horizontal style="display: flex; flex-direction: row;">
@@ -86,7 +86,7 @@
                   <q-icon name="call_made" color="blue" bordered size="50px" style="height: 100%;"></q-icon>
                 </q-card-section>
                 <q-card-section class="text-center " style="display: flex; width: 100%; flex-direction: column; padding-top: 30px;">
-                  Ativo
+                  Atendimentos Enviados
                   <p class="text-h7 text-bold text-center" style="font-size: 30px;">{{ ticketsAndTimes.qtd_demanda_ativa || 0 }}</p>
                 </q-card-section>
               </q-card-section>
@@ -99,7 +99,7 @@
                   <q-icon name="call_received" color="blue" bordered size="50px" style="height: 100%;"></q-icon>
                 </q-card-section>
                 <q-card-section class="text-center " style="display: flex; width: 100%; flex-direction: column; padding-top: 30px;">
-                  Receptivo
+                  Atendimentos Recebidos
                   <p class="text-h7 text-bold text-center" style="font-size: 30px;">{{ ticketsAndTimes.qtd_demanda_receptiva || 0}}</p>
                 </q-card-section>
               </q-card-section>
