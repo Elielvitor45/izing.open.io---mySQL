@@ -565,16 +565,16 @@ export default {
         this.$emit('update:replyingMessage', null)
         this.abrirFilePicker = false
         this.abrirModalPreviewImagem = false
-        this.$q.notify({
-          type: 'positive',
-          message: 'Mensagem Cadastrada com Sucesso',
-          position: 'top',
-          actions: [{
-            icon: 'close',
-            round: true,
-            color: 'white'
-          }]
-        })
+        // this.$q.notify({
+        //   type: 'positive',
+        //   message: 'Mensagem Cadastrada com Sucesso',
+        //   position: 'top',
+        //   actions: [{
+        //     icon: 'close',
+        //     round: true,
+        //     color: 'white'
+        //   }]
+        // })
         setTimeout(() => {
           this.scrollToBottom()
         }, 300)

@@ -19,13 +19,31 @@
           dense
           class="q-ml-sm"
           v-if="$q.screen.gt.xs">
-          <q-img src="/izing-logo_5_mini_transparent.png"
+          <q-img src="/playlistlogo120.png"
             spinner-color="primary"
-            style="height: 50px; width: 120px" />
+            style="height: 25px; width: 180px" />
         </q-btn></a>
         <q-space />
         <div class="q-gutter-sm row items-center no-wrap">
-          <q-btn round
+        <div class="text-center row"
+          :class="{ 'bg-grey-3': $q.dark.isActive }"
+          style="height: 40px">
+          <q-toggle size="xl"
+            keep-color
+            dense
+            class="text-bold q-ml-xs"
+            :icon-color="$q.dark.isActive ? 'black' : 'white'"
+            :value="$q.dark.isActive"
+            :color="$q.dark.isActive ? 'grey-3' : 'black'"
+            checked-icon="mdi-white-balance-sunny"
+            unchecked-icon="mdi-weather-sunny"
+            @input="$setConfigsUsuario({ isDark: !$q.dark.isActive })">
+            <q-tooltip content-class="text-body1 hide-scrollbar">
+            {{ $q.dark.isActive ? 'Desativar' : 'Ativar' }} Modo Escuro (Dark Mode)
+          </q-tooltip>
+        </q-toggle>
+        </div>
+          <!-- <q-btn round
             dense
             flat
             color="grey-8"
@@ -35,8 +53,10 @@
               floating>
               2
             </q-badge>
-            <q-tooltip>Notificações (Em breve)</q-tooltip>
-          </q-btn>
+            <q-menu>
+            </q-menu>
+            <q-tooltip>Notificações</q-tooltip>
+          </q-btn> -->
           <q-avatar :color="usuario.status === 'offline' ? 'negative' : 'positive'"
             text-color="white"
             size="25px"
@@ -130,24 +150,6 @@
 
         </q-list>
       </q-scroll-area>
-      <div class="absolute-bottom text-center row justify-start"
-        :class="{ 'bg-grey-3': $q.dark.isActive }"
-        style="height: 40px">
-        <q-toggle size="xl"
-          keep-color
-          dense
-          class="text-bold q-ml-xs"
-          :icon-color="$q.dark.isActive ? 'black' : 'white'"
-          :value="$q.dark.isActive"
-          :color="$q.dark.isActive ? 'grey-3' : 'black'"
-          checked-icon="mdi-white-balance-sunny"
-          unchecked-icon="mdi-weather-sunny"
-          @input="$setConfigsUsuario({ isDark: !$q.dark.isActive })">
-          <q-tooltip content-class="text-body1 hide-scrollbar">
-            {{ $q.dark.isActive ? 'Desativar' : 'Ativar' }} Modo Escuro (Dark Mode)
-          </q-tooltip>
-        </q-toggle>
-      </div>
     </q-drawer>
 
     <q-page-container>
@@ -272,14 +274,14 @@ const objMenuAdmin = [
     icon: 'mdi-message-bookmark-outline',
     routeName: 'campanhas',
     isBeta: true
-  },
-  {
-    title: 'API',
-    caption: 'Integração sistemas externos',
-    icon: 'mdi-call-split',
-    routeName: 'api-service',
-    isBeta: true
   }
+  // {
+  //   title: 'API',
+  //   caption: 'Integração sistemas externos',
+  //   icon: 'mdi-call-split',
+  //   routeName: 'api-service',
+  //   isBeta: true
+  // }
 ]
 
 export default {
