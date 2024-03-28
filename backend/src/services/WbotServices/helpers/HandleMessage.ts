@@ -95,7 +95,6 @@ const HandleMessage = async (
         const unreadMessages = msg.fromMe ? 0 : chat.unreadCount;
 		 if(unreadMessages === 0 && whatsapp.farewellMessage === msg.body) return;
 
-        // const profilePicUrl = await msgContact.getProfilePicUrl();
         const contact = await VerifyContact(msgContact, tenantId);
         await delay(1000);
         const ticket = await FindOrCreateTicketService({
@@ -114,7 +113,6 @@ const HandleMessage = async (
         const ticketId = ticket.id;
 
         if(msg.ack === 1 && number === msg.from.split('@')[0] ){
-          // await UpdateStatusTicketService("open", ticketId, tenantId);
           if(ticket.status !== "open"){
             const userIdRequest = 1;
             await UpdateTicketService({
@@ -124,6 +122,7 @@ const HandleMessage = async (
             });
           }
         }
+        
         if (ticket?.isCampaignMessage) {
           resolve();
           await DictionaryUpdate(ticket.id,false);

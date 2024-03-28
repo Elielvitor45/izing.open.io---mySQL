@@ -1,7 +1,7 @@
 import { QueryTypes } from "sequelize";
 import Atendimentos from "../../asteriskmodels/Atendimentos";
 
-const query = `INSERT INTO atendimentos (idPas,Telefone,Tipo,PAS,Tentativas) VALUES (:CodigoPas,:Telefone,'NORMAL','SIM',1);`;
+const query = `INSERT INTO Atendimentos (idPas,Telefone,Tipo,PAS,Tentativas) VALUES (:CodigoPas,:Telefone,'NORMAL','SIM',1);`;
 const AsteriskInsertAtendimento = async (CodigoPas: number, Telefone: string) => {
     if (CodigoPas && Telefone) {
         await Atendimentos.sequelize?.query(query, {

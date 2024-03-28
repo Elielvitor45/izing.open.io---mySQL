@@ -68,7 +68,9 @@ const isNextSteps = async (
           sendType: messageData.sendType,
           status: "pending"
         });
+
         await delay(1000);
+
         await CreateLogTicketService({
           ticketId: ticket.id,
           type: "autoClose"
@@ -309,7 +311,7 @@ const isAnswerCloseTicket = async (
       );
     }
   );
-
+  
   if (params) {
     const messageData = {
       body:'Estamos encerrando seu atendimento. Por favor, sinta-se a vontade para iniciar um novo atendimento!',
@@ -317,13 +319,13 @@ const isAnswerCloseTicket = async (
       read: true,
       sendType: "bot"
     };
-    await delay(500);
+    
     await CreateMessageSystemService({
       msg: messageData,
       tenantId: ticket.tenantId,
       ticket,
       sendType: messageData.sendType,
-      status: "pending"
+      status: "closed"
     });
 
     await delay(3000);
@@ -391,7 +393,6 @@ const SendMessagePas = async(ticket,verifyStepCondition, pasCondition,chatFlow, 
     await delay(1000);
     return true;
   }
-  //Provavelmente terei que adicionar aqui
   const messageData = {
     body: `O PAS inserido é inválido. Por favor, digite o codigo PAS novamente ou pressione 0 para finalizar o atendimento.| Tentativas ${ticket.botRetries} de 3`,
     fromMe: true,
