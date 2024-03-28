@@ -257,7 +257,6 @@ const CreateMessageSystemService = async ({
       //     })
       //   );
       // }
-
       socketEmit({
         tenantId,
         type: "chat:create",

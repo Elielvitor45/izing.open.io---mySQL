@@ -325,7 +325,7 @@ const isAnswerCloseTicket = async (
       tenantId: ticket.tenantId,
       ticket,
       sendType: messageData.sendType,
-      status: "closed"
+      status: "pending"
     });
 
     await delay(3000);
