@@ -121,14 +121,21 @@ export const initWbot = async (whatsapp: Whatsapp): Promise<Session> => {
       if (whatsapp?.session) {
         sessionCfg = JSON.parse(whatsapp.session);
       }
-
+      const version = "2.2409.2";
       const wbot = new Client({
         authStrategy: new LocalAuth({ clientId: `wbot-${whatsapp.id}` }),
         puppeteer: {
           // headless: false,
           executablePath: process.env.CHROME_BIN || undefined,
           args: [`--user-agent=${DefaultOptions.userAgent}`, ...minimal_args]
-        }
+        },
+        webVersion: process.env.WEB_VERSION || "2.2409.2",
+        webVersionCache: {
+          type: "remote",
+          remotePath: `
+          https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/${version}.html`
+        },
+        qrMaxRetries: 5
       }) as Session;
 
       wbot.id = whatsapp.id;

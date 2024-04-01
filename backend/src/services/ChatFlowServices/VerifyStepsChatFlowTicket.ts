@@ -21,6 +21,7 @@ import User from "../../models/User";
 import Contact from "../../models/Contact";
 import UpdateTicketPasService from "../TicketServices/UpdateTicketPasService";
 import AsteriskInsertAtendimento from "./AsteriskInsertAtendimento";
+import CreateMessageAndCloseTicket from "../MessageServices/CreateMessageAndCloseTicket";
 
 
 
@@ -320,7 +321,7 @@ const isAnswerCloseTicket = async (
       sendType: "bot"
     };
     
-    await CreateMessageSystemService({
+    await CreateMessageAndCloseTicket({
       msg: messageData,
       tenantId: ticket.tenantId,
       ticket,
@@ -328,35 +329,37 @@ const isAnswerCloseTicket = async (
       status: "pending"
     });
 
-    await delay(3000);
 
-    await ticket.update({
-      chatFlowId: null,
-      stepChatFlow: null,
-      botRetries: 0,
-      lastInteractionBot: new Date(),
-      unreadMessages: 0,
-      answered: false,
-      status: "closed"
-    });
+    // await delay(3000);
 
-    await CreateLogTicketService({
-      ticketId: ticket.id,
-      type: "autoClose"
-    });
+    // await ticket.update({
+    //   chatFlowId: null,
+    //   stepChatFlow: null,
+    //   botRetries: 0,
+    //   lastInteractionBot: new Date(),
+    //   unreadMessages: 0,
+    //   answered: false,
+    //   status: "closed"
+    // });
 
-    socketEmit({
-      tenantId: ticket.tenantId,
-      type: "ticket:update",
-      payload: ticket
-    });
+    // await CreateLogTicketService({
+    //   ticketId: ticket.id,
+    //   type: "autoClose"
+    // });
+
+    // socketEmit({
+    //   tenantId: ticket.tenantId,
+    //   type: "ticket:update",
+    //   payload: ticket
+    // });
+
     return true;
   }
   return false;
 };
 
 const SendMessagePas = async(ticket,verifyStepCondition, pasCondition,chatFlow, contact): Promise<boolean|void> => {
-  if(pasCondition && !contact.blocked){
+  if(pasCondition){
     const nodesList = [...chatFlow.flow.nodeList];
     const nextStep = nodesList.find(
       (n: any) => n.id === verifyStepCondition.nextStepId
@@ -381,20 +384,19 @@ const SendMessagePas = async(ticket,verifyStepCondition, pasCondition,chatFlow, 
     botRetries: ticket.botRetries + 1,
     lastInteractionBot: new Date()
   });
-
-  if(ticket.botRetries > 3){  
-    await ticket.update({
-      botRetries: 0,
-      lastInteractionBot: new Date(),
-    });
-    await contact.update({
-      Blocked: true
-    });
-    await delay(1000);
-    return true;
-  }
+  // if(ticket.botRetries > 3){  
+  //   await ticket.update({
+  //     botRetries: 0,
+  //     lastInteractionBot: new Date(),
+  //   });
+  //   await contact.update({
+  //     Blocked: true
+  //   });
+  //   await delay(1000);
+  //   return true;
+  // }
   const messageData = {
-    body: `O PAS inserido é inválido. Por favor, digite o codigo PAS novamente ou pressione 0 para finalizar o atendimento.| Tentativas ${ticket.botRetries} de 3`,
+    body: `O PAS inserido é inválido. Por favor, digite o codigo PAS novamente ou pressione 0 para finalizar o atendimento.`,
     fromMe: true,
     read: true,
     sendType: "bot"
