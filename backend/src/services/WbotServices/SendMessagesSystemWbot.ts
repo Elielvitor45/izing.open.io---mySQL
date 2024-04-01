@@ -9,6 +9,9 @@ import { logger } from "../../utils/logger";
 import { sleepRandomTime } from "../../utils/sleepRandomTime";
 import Contact from "../../models/Contact";
 import { generateMessage } from "../../utils/mustache";
+import CreateLogTicketService from "../TicketServices/CreateLogTicketService";
+import socketEmit from "../../helpers/socketEmit";
+import { delay } from "bluebird";
 // import SetTicketMessagesAsRead from "../../helpers/SetTicketMessagesAsRead";
 
 interface Session extends Client {
@@ -94,7 +97,36 @@ const SendMessagesSystemWbot = async (
           sendAudioAsVoice: true
         });
         logger.info("sendMessage media");
-      } else {
+      }else if(message.mediaType === "close"){
+        sendedMessage = await wbot.sendMessage(
+          chatId,
+          generateMessage(message.body, ticket),
+          {
+            quotedMessageId: quotedMsgSerializedId,
+            linkPreview: false // fix: send a message takes 2 seconds when there's a link on message body
+          }
+        );
+        await delay(2000);
+        await ticket.update({
+          chatFlowId: null,
+          stepChatFlow: null,
+          botRetries: 0,
+          lastInteractionBot: new Date(),
+          unreadMessages: 0,
+          answered: false,
+          status: "closed"
+        });
+        await CreateLogTicketService({
+          ticketId: ticket.id,
+          type: "autoClose"
+        });
+    
+        socketEmit({
+          tenantId: ticket.tenantId,
+          type: "ticket:update",
+          payload: ticket
+        });
+      }else {
         sendedMessage = await wbot.sendMessage(
           chatId,
           generateMessage(message.body, ticket),

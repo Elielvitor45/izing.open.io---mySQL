@@ -60,7 +60,7 @@ const CreateMessageAndCloseTicket = async ({
         contactId: ticket.contactId,
         fromMe: sendType === "API" ? true : msg?.fromMe,
         read: true,
-        mediaType: "chat",
+        mediaType: "close",
         mediaUrl: undefined,
         timestamp: new Date().getTime(),
         quotedMsgId: msg?.quotedMsg?.id,
@@ -74,7 +74,7 @@ const CreateMessageAndCloseTicket = async ({
     try {
         const msgCreated = await Message.create({
             ...messageData,
-            mediaType: "chat"
+            mediaType: "close"
           });
     
           const messageCreated = await Message.findByPk(msgCreated.id, {
@@ -109,31 +109,8 @@ const CreateMessageAndCloseTicket = async ({
             type: "chat:create",
             payload: messageCreated
           });
-          await delay(5000);
     } catch (error) {
         console.error(error)
     }
-    
-    await ticket.update({
-        chatFlowId: null,
-        stepChatFlow: null,
-        botRetries: 0,
-        lastInteractionBot: new Date(),
-        unreadMessages: 0,
-        answered: false,
-        status: "closed"
-      });
-  
-      await CreateLogTicketService({
-        ticketId: ticket.id,
-        type: "autoClose"
-      });
-  
-      socketEmit({
-        tenantId: ticket.tenantId,
-        type: "ticket:update",
-        payload: ticket
-      });
   };
-
   export default CreateMessageAndCloseTicket;

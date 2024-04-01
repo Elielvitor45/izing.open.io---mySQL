@@ -329,30 +329,6 @@ const isAnswerCloseTicket = async (
       status: "pending"
     });
 
-
-    // await delay(3000);
-
-    // await ticket.update({
-    //   chatFlowId: null,
-    //   stepChatFlow: null,
-    //   botRetries: 0,
-    //   lastInteractionBot: new Date(),
-    //   unreadMessages: 0,
-    //   answered: false,
-    //   status: "closed"
-    // });
-
-    // await CreateLogTicketService({
-    //   ticketId: ticket.id,
-    //   type: "autoClose"
-    // });
-
-    // socketEmit({
-    //   tenantId: ticket.tenantId,
-    //   type: "ticket:update",
-    //   payload: ticket
-    // });
-
     return true;
   }
   return false;
