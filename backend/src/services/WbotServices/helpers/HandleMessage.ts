@@ -145,7 +145,10 @@ const HandleMessage = async (
         }
         const chatFlow = await ticket.getChatFlow();
         // await VerifyAutoReplyActionTicket(msg, ticket);
-        const verifyClose = await verifyBusinessHours(msg, ticket);
+        var verifyClose;
+        if(ticket.status != "open"){
+          verifyClose = await verifyBusinessHours(msg, ticket);
+        }
         if (chatFlow?.dataValues.isActive) {
           if ((verifyClose === false || msg.body === '')) {
           } else {

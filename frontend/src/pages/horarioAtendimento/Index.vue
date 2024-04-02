@@ -228,7 +228,32 @@ export default {
     },
     async salvarHorariosAtendimento () {
       const { data } = await AtualizarHorariosAtendiemento(this.businessHours)
-      this.businessHours = data.businessHours
+      if (data) {
+        this.$q.notify({
+          message: 'Horário de Atendimento salvo com sucesso',
+          type: 'positive',
+          progress: true,
+          position: 'top',
+          actions: [{
+            icon: 'close',
+            round: true,
+            color: 'white'
+          }]
+        })
+        this.businessHours = data.businessHours
+      } else {
+        this.$q.notify({
+          message: `error: ${data.errorMessage}`,
+          type: 'negative',
+          progress: true,
+          position: 'top',
+          actions: [{
+            icon: 'close',
+            round: true,
+            color: 'white'
+          }]
+        })
+      }
     },
     async salvarMensagemAusencia () {
       const { data } = await AtualizarMensagemHorariosAtendiemento({

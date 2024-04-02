@@ -26,8 +26,9 @@
         <q-space />
         <div class="q-gutter-sm row items-center no-wrap">
         <div class="text-center row"
-          :class="{ 'bg-grey-3': $q.dark.isActive }"
-          style="height: 40px">
+          :class="{ '#1E1E1E': $q.dark.isActive }"
+          style="height: 40px;"
+          >
           <q-toggle size="xl"
             keep-color
             dense
