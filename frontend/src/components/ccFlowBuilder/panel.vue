@@ -231,36 +231,36 @@ export default {
         })
         return false
       }
-      if (this.hasLine(from, to)) {
-        this.$q.notify({
-          type: 'negative',
-          progress: true,
-          position: 'top',
-          timeout: 2500,
-          message: 'Não é possível realizar loop entre os elementos.',
-          actions: [{
-            icon: 'close',
-            round: true,
-            color: 'white'
-          }]
-        })
-        return false
-      }
-      if (this.hashOppositeLine(from, to)) {
-        this.$q.notify({
-          type: 'negative',
-          progress: true,
-          position: 'top',
-          timeout: 2500,
-          message: 'Não é possível realizar loop entre os elementos.',
-          actions: [{
-            icon: 'close',
-            round: true,
-            color: 'white'
-          }]
-        })
-        return false
-      }
+      // if (this.hasLine(from, to)) {
+      //   this.$q.notify({
+      //     type: 'negative',
+      //     progress: true,
+      //     position: 'top',
+      //     timeout: 2500,
+      //     message: 'Não é possível realizar loop entre os elementos.',
+      //     actions: [{
+      //       icon: 'close',
+      //       round: true,
+      //       color: 'white'
+      //     }]
+      //   })
+      //   return false
+      // }
+      // if (this.hashOppositeLine(from, to)) {
+      //   this.$q.notify({
+      //     type: 'negative',
+      //     progress: true,
+      //     position: 'top',
+      //     timeout: 2500,
+      //     message: 'Não é possível realizar loop entre os elementos.',
+      //     actions: [{
+      //       icon: 'close',
+      //       round: true,
+      //       color: 'white'
+      //     }]
+      //   })
+      //   return false
+      // }
       this.$notificarSucesso('Conexão realizada.')
       return true
     },

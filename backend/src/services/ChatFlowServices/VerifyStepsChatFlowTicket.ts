@@ -138,7 +138,7 @@ const isQueueDefine = async (
       });
       const queueN = await Queue.findByPk(stepCondition.queueId);
       const messageData = {
-        body:`Você está sendo direcionado(a) para a fila ${queueN?.queue}. Enquanto aguarda o atendimento, que deve iniciar em alguns minutos, por favor, descreva o motivo do seu contato. Isso nos ajudará a entender melhor suas necessidades e a fornecer um atendimento mais eficiente.`,
+        body:  flowConfig?.configurations?.welcomeMessage?.message || `Você está sendo direcionado(a) para a fila ${queueN?.queue}. Enquanto aguarda o atendimento, que deve iniciar em alguns minutos, por favor, descreva o motivo do seu contato. Isso nos ajudará a entender melhor suas necessidades e a fornecer um atendimento mais eficiente.`,
         fromMe: true,
         read: true,
         sendType: "bot"
