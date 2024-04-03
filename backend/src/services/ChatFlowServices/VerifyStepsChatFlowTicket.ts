@@ -233,14 +233,16 @@ const isRetriesLimit = async (
     };
     const cliente = await Contact.findByPk(ticket.contactId);
     if (destinyType === 1) {
-       if(destiny === ''){
+      var queueN; 
+      if(destiny === ''){
          updatedValues.queueId = 1;
          logsRetry.queueId = 1;
+         queueN = await Queue.findByPk(1);
        }else{
         updatedValues.queueId = destiny;
         logsRetry.queueId = destiny;
+        queueN = await Queue.findByPk(destiny);
       }
-      const queueN = await Queue.findByPk(destiny);
       const messageData = {
         body:
           `${cliente?.pushname}, você não selecionou opções após ${flowConfig.configurations.maxRetryBotMessage.number} tentativas. Você será transferido para a fila ${queueN?.queue}. Aguarde alguns momentos para ser atendido por um de nossos atendentes. Obrigado pela compreensão.
