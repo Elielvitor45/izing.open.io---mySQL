@@ -224,7 +224,7 @@
         <!-- <q-separator /> -->
         <div class="absolute-bottom row justify-between"
           style="height: 50px">
-          <q-toggle size="xl"
+          <!-- <q-toggle size="xl"
             keep-color
             dense
             class="text-bold q-ml-md flex flex-block"
@@ -237,7 +237,7 @@
             <q-tooltip content-class="text-body1">
               {{ $q.dark.isActive ? 'Desativar' : 'Ativar' }} Modo Escuro (Dark Mode)
             </q-tooltip>
-          </q-toggle>
+          </q-toggle> -->
           <div class="flex flex-inline q-pt-xs">
             <q-scroll-area horizontal
               style="heigth: 40px; width: 300px;">

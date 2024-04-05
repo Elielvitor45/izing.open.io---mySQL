@@ -29,7 +29,7 @@
           :class="{ '#1E1E1E': $q.dark.isActive }"
           style="height: 40px;"
           >
-          <q-toggle size="xl"
+          <!-- <q-toggle size="xl"
             keep-color
             dense
             class="text-bold q-ml-xs"
@@ -42,7 +42,7 @@
             <q-tooltip content-class="text-body1 hide-scrollbar">
             {{ $q.dark.isActive ? 'Desativar' : 'Ativar' }} Modo Escuro (Dark Mode)
           </q-tooltip>
-        </q-toggle>
+        </q-toggle> -->
         </div>
           <!-- <q-btn round
             dense
@@ -267,15 +267,15 @@ const objMenuAdmin = [
     caption: 'Configurações gerais',
     icon: 'mdi-cog',
     routeName: 'configuracoes'
-  },
-  /// / criar rotina para liberar pelo backend
-  {
-    title: 'Campanha',
-    caption: 'Campanhas de envio',
-    icon: 'mdi-message-bookmark-outline',
-    routeName: 'campanhas',
-    isBeta: true
   }
+  /// / criar rotina para liberar pelo backend
+  // {
+  //   title: 'Campanha',
+  //   caption: 'Campanhas de envio',
+  //   icon: 'mdi-message-bookmark-outline',
+  //   routeName: 'campanhas',
+  //   isBeta: true
+  // }
   // {
   //   title: 'API',
   //   caption: 'Integração sistemas externos',
