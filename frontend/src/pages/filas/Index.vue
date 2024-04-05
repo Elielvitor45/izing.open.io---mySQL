@@ -127,7 +127,6 @@ export default {
           .then(res => {
             let newFilas = [...this.filas]
             newFilas = newFilas.filter(f => f.id !== fila.id)
-
             this.filas = [...newFilas]
             this.$q.notify({
               type: 'positive',
@@ -141,7 +140,24 @@ export default {
               }]
             })
           })
-        this.loading = false
+          .catch(error => {
+            this.$q.notify({
+              type: 'negative',
+              progress: true,
+              position: 'top',
+              timeout: 2000,
+              message: `Fila ${fila.queue} está sendo usada e não pode ser deletada!`,
+              actions: [{
+                icon: 'close',
+                round: true,
+                color: 'white'
+              }]
+            })
+            console.log(error)
+          })
+          .finally(() => {
+            this.loading = false
+          })
       })
     }
 

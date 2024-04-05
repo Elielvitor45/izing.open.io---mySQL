@@ -461,7 +461,18 @@ export default {
     async associarPasSalvar () {
       try {
         if (isNaN(this.codigoPas) || this.codigoPas.toString().length !== 5) {
-          this.$notificarErro('PAS Inválido')
+          this.$q.notify({
+            type: 'negative',
+            progress: true,
+            position: 'top',
+            timeout: 2500,
+            message: 'PAS inválido!',
+            actions: [{
+              icon: 'close',
+              round: true,
+              color: 'white'
+            }]
+          })
         } else {
           await AtualizarPas(this.codigoPas, this.ticketFocado.id)
           this.$q.notify({
