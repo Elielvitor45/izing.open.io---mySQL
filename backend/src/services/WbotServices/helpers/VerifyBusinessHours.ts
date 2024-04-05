@@ -37,7 +37,7 @@ const verifyBusinessHours = async (
 
     // Não existir configuração para a data, não deverá enviar
     // mensagem de ausencia
-    
+
     if (!businessDay) return true;
 
     // Se o tipo for "O" open - significa que o estabelecimento
@@ -73,7 +73,15 @@ const verifyBusinessHours = async (
       //   ticket,
       //   quotedMsg: undefined
       // });
-
+      if(ticket.botRetries > 4) {
+        return false;
+      }
+      else{
+        await ticket.update({
+          botRetries: ticket.botRetries + 1,
+          lastInteractionBot: new Date()
+        });
+      }
       const messageData = {
         body: tenant.messageBusinessHours,
         fromMe: true,
